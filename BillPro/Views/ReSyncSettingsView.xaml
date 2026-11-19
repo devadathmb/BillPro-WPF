@@ -1,0 +1,86 @@
+﻿<UserControl x:Class="BillPro.Views.ResyncSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:BillPro.Helpers"
+             Background="#E9ECEF">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Padding="15,10">
+            <TextBlock Text="RESYNC TO ACCOUNTS"
+                       FontSize="16" FontWeight="Bold" Foreground="#1D4ED8"/>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,4,0,0" Padding="16">
+            <StackPanel>
+                <TextBlock Text="Daybook Summary Migration / Rebuild" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#4B5563" Margin="0,0,0,10"
+                           Text="Run this once after updating to the new grouped daybook_summary architecture. It safely drops the old-shape table if found, recreates it with the current schema, and fully rebuilds it from voucher_tax_postings (the audit trail). Existing bills are unaffected — this only touches the report cache. Safe to run again any time as a general 'Rebuild Daybook' action."/>
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="btnMigrateDaybook" Content="_Migrate &amp; Rebuild Daybook Summary" Click="BtnMigrateDaybook_Click"
+                            Style="{StaticResource PrimaryOutlineButton}" MinWidth="220"/>
+                    <TextBlock x:Name="lblMigrateStatus" VerticalAlignment="Center" Margin="16,0,0,0" Foreground="#6B7280"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,4,0,0" Padding="16">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" Foreground="#4B5563" Margin="0,0,0,12"
+                           Text="Retries posting for every Sales / Purchase / Sales Return / Purchase Return entry still flagged as not synced to accounts.db. Leave both dates blank to sweep every pending entry regardless of date."/>
+
+                <CheckBox x:Name="chkForceAll" Content="Force resync everything in range, ignoring the synced flag (use once for data entered before accounts sync existed — requires both From and To)"
+                          Foreground="#B45309" FontWeight="SemiBold" Margin="0,0,0,10" Checked="ChkForceAll_Checked" Unchecked="ChkForceAll_Unchecked"/>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,6">
+                    <TextBlock Text="From:" Width="60" TextAlignment="Right" VerticalAlignment="Center"/>
+                    <DatePicker x:Name="dpFromDate" Width="140" Margin="6,0,0,0"
+                                helpers:DatePickerOverwriteBehavior.IsEnabled="True"/>
+                    <TextBlock Text="To:" Width="40" Margin="20,0,0,0" TextAlignment="Right" VerticalAlignment="Center"/>
+                    <DatePicker x:Name="dpToDate" Width="140" Margin="6,0,0,0"
+                                helpers:DatePickerOverwriteBehavior.IsEnabled="True"/>
+                    <Button x:Name="btnResync" Content="_Resync to Accounts" Click="BtnResync_Click"
+                            Style="{StaticResource PrimaryOutlineButton}" MinWidth="150" Margin="24,0,0,0"/>
+                    <Button x:Name="btnClearRange" Content="Clear Dates" Click="BtnClearRange_Click"
+                            MinWidth="100" Margin="8,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource CardBorder}" Margin="0,4,0,0" Padding="16">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Result" FontWeight="SemiBold" Margin="0,0,0,8"/>
+
+                <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                        <TextBlock Text="Pending Found" FontSize="11" Foreground="#6B7280"/>
+                        <TextBlock x:Name="lblPending" FontSize="14" FontWeight="SemiBold"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,24,0">
+                        <TextBlock Text="Succeeded" FontSize="11" Foreground="#6B7280"/>
+                        <TextBlock x:Name="lblSucceeded" FontSize="14" FontWeight="SemiBold" Foreground="#15803D"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Still Failing" FontSize="11" Foreground="#6B7280"/>
+                        <TextBlock x:Name="lblFailed" FontSize="14" FontWeight="SemiBold" Foreground="#B91C1C"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock x:Name="lblFailedHeader" DockPanel.Dock="Top" Text="Failed refs:" FontSize="11" Foreground="#6B7280" Margin="0,0,0,4"
+                           Visibility="Collapsed"/>
+                <ListBox x:Name="lstFailed" BorderThickness="1" BorderBrush="#D1D5DB" Background="White" Visibility="Collapsed"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

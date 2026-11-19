@@ -1,0 +1,217 @@
+﻿<UserControl x:Class="BillPro.Views.CurrentStockReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:BillPro.Helpers"
+             xmlns:controls="clr-namespace:BillPro.Controls"
+             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+             Background="#E9ECEF"
+             Loaded="UserControl_Loaded">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Padding="15,10">
+            <TextBlock Text="CURRENT STOCK REPORT (Item-wise)"
+                       FontSize="16" FontWeight="Bold" Foreground="#1D4ED8"/>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,4,0,0">
+            <DockPanel x:Name="dockReport">
+                <TextBlock DockPanel.Dock="Bottom" Text="Tip: click the + on a row to expand an item's individual batches. Double-click or right-click a batch inside the expanded list to view its full transaction history."
+                       FontSize="10.5" Foreground="#9CA3AF" Margin="10,3" HorizontalAlignment="Left"/>
+
+                <!-- Outer grid: one row per item, additive totals only. No
+                     MouseDoubleClick/ContextMenu here — same reason as
+                     SalesReturnItemReportView: viewing transaction history
+                     only makes sense on a specific batch (the nested detail
+                     grid), wired at the DockPanel level below. -->
+                <syncfusion:SfDataGrid
+                    x:Name="sfReport"
+                    RowHeight="32"
+                    HeaderRowHeight="36"
+                    AutoGenerateColumns="False"
+                    AllowEditing="False"
+                    AllowSorting="True"
+                    AllowFiltering="False"
+                    AddNewRowPosition="None"
+                    NavigationMode="Row"
+                    SelectionMode="Single"
+                    ColumnSizer="None"
+                    AlternationCount="2"
+                    BorderThickness="0"
+                    ShowRowHeader="False"
+                    ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+                    <syncfusion:SfDataGrid.RowStyle>
+                        <Style TargetType="syncfusion:VirtualizingCellsControl">
+                            <Setter Property="Background" Value="White"/>
+                        </Style>
+                    </syncfusion:SfDataGrid.RowStyle>
+
+                    <syncfusion:SfDataGrid.AlternatingRowStyle>
+                        <Style TargetType="syncfusion:VirtualizingCellsControl">
+                            <Setter Property="Background" Value="#EFF6FF"/>
+                        </Style>
+                    </syncfusion:SfDataGrid.AlternatingRowStyle>
+
+                    <syncfusion:SfDataGrid.Columns>
+                        <syncfusion:GridTextColumn    MappingName="ItemCode"        HeaderText="Code"       Width="70"/>
+                        <syncfusion:GridTextColumn    MappingName="ItemName"        HeaderText="Item Name"  ColumnSizer="Star" MinimumWidth="180"/>
+                        <syncfusion:GridTextColumn    MappingName="CompanyName"     HeaderText="Company"    Width="160"/>
+                        <syncfusion:GridTextColumn    MappingName="CategoryName"    HeaderText="Category"   Width="130"/>
+                        <syncfusion:GridNumericColumn MappingName="TotalCurrentQty" HeaderText="Total Qty"  Width="110" NumberDecimalDigits="3"/>
+                        <syncfusion:GridNumericColumn MappingName="TotalAmount"     HeaderText="Total Amount" Width="120" NumberDecimalDigits="2"/>
+                    </syncfusion:SfDataGrid.Columns>
+
+                    <syncfusion:SfDataGrid.DetailsViewDefinition>
+                        <syncfusion:GridViewDefinition RelationalColumn="Details">
+                            <syncfusion:GridViewDefinition.DataGrid>
+                                <!-- Batch-wise detail. Item Name and Batch No
+                                     are now shown here too (previously only
+                                     on the outer/summary row) — Item Name
+                                     takes the star column so the expanded
+                                     grid fills the full available width
+                                     instead of leaving a gap where the
+                                     collapsed row's Item Name column used to
+                                     be. Batch No is currently empty for every
+                                     row (batch numbers aren't tracked yet on
+                                     this data), but the column is wired up
+                                     now so it starts showing values the
+                                     moment that changes upstream, with no
+                                     further edit needed here.
+                                     No MouseDoubleClick/ContextMenu here —
+                                     attached in code-behind at the DockPanel
+                                     level instead (see
+                                     SalesReturnItemReportView for the full
+                                     rationale). -->
+                                <syncfusion:SfDataGrid
+                                    RowHeight="30"
+                                    HeaderRowHeight="32"
+                                    AutoGenerateColumns="False"
+                                    AllowEditing="False"
+                                    AllowSorting="True"
+                                    AllowFiltering="False"
+                                    AddNewRowPosition="None"
+                                    NavigationMode="Row"
+                                    SelectionMode="Single"
+                                    ColumnSizer="None"
+                                    AlternationCount="2"
+                                    BorderThickness="0"
+                                    ShowRowHeader="False"
+                                    ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+                                    <syncfusion:SfDataGrid.RowStyle>
+                                        <Style TargetType="syncfusion:VirtualizingCellsControl">
+                                            <Setter Property="Background" Value="#FAFAFA"/>
+                                        </Style>
+                                    </syncfusion:SfDataGrid.RowStyle>
+
+                                    <syncfusion:SfDataGrid.Columns>
+                                        <syncfusion:GridTextColumn    MappingName="ItemName"      HeaderText="Item Name"     ColumnSizer="Star" MinimumWidth="160"/>
+                                        <syncfusion:GridTextColumn    MappingName="BatchNumber"   HeaderText="Batch No"      Width="100"/>
+                                        <syncfusion:GridNumericColumn MappingName="Mrp"            HeaderText="MRP"           Width="90"  NumberDecimalDigits="2"/>
+                                        <syncfusion:GridNumericColumn MappingName="SalesRate"      HeaderText="Sales Rate"    Width="90"  NumberDecimalDigits="2"/>
+                                        <syncfusion:GridNumericColumn MappingName="PurchaseRate"   HeaderText="Purchase Rate" Width="90"  NumberDecimalDigits="2"/>
+                                        <syncfusion:GridNumericColumn MappingName="CurrentQty"     HeaderText="Current Qty"   Width="100" NumberDecimalDigits="3"/>
+                                        <syncfusion:GridNumericColumn MappingName="Amount"         HeaderText="Amount"        Width="110" NumberDecimalDigits="2"/>
+                                    </syncfusion:SfDataGrid.Columns>
+                                </syncfusion:SfDataGrid>
+                            </syncfusion:GridViewDefinition.DataGrid>
+                        </syncfusion:GridViewDefinition>
+                    </syncfusion:SfDataGrid.DetailsViewDefinition>
+                </syncfusion:SfDataGrid>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,4,0,0"
+                BorderBrush="#111827" BorderThickness="0,1,0,0" Padding="16,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="btnExpandAll"   Content="Expand All"   Click="BtnExpandAll_Click"   MinWidth="90" Margin="0,0,6,0"/>
+                    <Button x:Name="btnCollapseAll" Content="Collapse All" Click="BtnCollapseAll_Click" MinWidth="90"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right">
+                    <TextBlock x:Name="lblGrandTotalQty" FontSize="15" FontWeight="Bold"
+                               HorizontalAlignment="Right" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="lblGrandTotalAmount" FontSize="17" FontWeight="Bold"
+                               HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource PanelBorder}" Padding="15,10" Margin="0,4,0,0" MaxHeight="240">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" MinWidth="260"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2*" MinWidth="200"/>
+                </Grid.ColumnDefinitions>
+
+                <ScrollViewer Grid.Column="0" VerticalAlignment="Center"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,20,4">
+                            <TextBlock Text="As on:" Width="85" TextAlignment="Right" VerticalAlignment="Center"/>
+                            <DatePicker x:Name="dpAsOfDate" Width="150" Margin="6,0,0,0"
+                                        helpers:DatePickerOverwriteBehavior.IsEnabled="True"
+                                        SelectedDateChanged="Filter_Changed"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,20,4">
+                            <TextBlock Text="Company:" Width="85" TextAlignment="Right" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="cmbCompany" Width="150" Margin="6,0,0,0"
+                                      DisplayMemberPath="CompanyName" SelectedValuePath="CompanyCode"
+                                      SelectionChanged="Filter_Changed"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,20,4">
+                            <TextBlock Text="Category:" Width="85" TextAlignment="Right" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="cmbCategory" Width="150" Margin="6,0,0,0"
+                                      DisplayMemberPath="CategoryName" SelectedValuePath="CategoryCode"
+                                      SelectionChanged="Filter_Changed"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,20,4">
+                            <TextBlock Text="Item Search:" Width="85" TextAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBox x:Name="txtItemSearch" Width="150" Margin="6,0,0,0"
+                                     helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnDisplay}"
+                                     helpers:TextBoxBehavior.SelectAllOnFocus="True"
+                                     KeyDown="TxtItemSearch_KeyDown"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,0,4">
+                            <!-- Checked by default: newly-added items with no
+                                 purchase/production/sale yet (and any item
+                                 whose batches all net to zero) are hidden
+                                 unless the user explicitly asks to see them. -->
+                            <CheckBox x:Name="chkHideZeroStock" Content="Hide items with 0 stock"
+                                      IsChecked="True" VerticalAlignment="Center"
+                                      Checked="Filter_Changed" Unchecked="Filter_Changed"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </ScrollViewer>
+
+                <Border Grid.Column="1" Width="1" Margin="16,2" Background="#D1D5DB"/>
+
+                <WrapPanel Grid.Column="2" Orientation="Horizontal"
+                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button x:Name="btnDisplay" Content="_Display" Click="BtnDisplay_Click"
+                            Style="{StaticResource PrimaryOutlineButton}" MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnPrint"   Content="Print" Click="BtnPrint_Click"   MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnPdf"     Content="PDF"   Click="BtnPdf_Click"     MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnExcel"   Content="Excel" Click="BtnExcel_Click"   MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnClose"   Content="Close" MinWidth="80" Margin="4"
+                            helpers:CloseTabBehavior.CloseOnClick="True"/>
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,87 @@
+﻿<UserControl x:Class="BillPro.Views.AccountHeadRegistration"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:BillPro.Views"
+             xmlns:helpers ="clr-namespace:BillPro.Helpers"
+             xmlns:controls ="clr-namespace:BillPro.Controls"
+             Loaded="UserControl_Loaded"
+             Background="#E9ECEF">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="1" Background="White" Padding="20" Margin="15 0"
+                CornerRadius="8" BorderBrush="#CCCCCC" BorderThickness="1"
+                HorizontalAlignment="Stretch" MaxWidth="800">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="20"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="A/c. Head Code" Grid.Row="0" Grid.Column="0" />
+                <TextBox x:Name="TxtAcHeadCode" Grid.Row="0" Grid.Column="1" IsEnabled="False" TabIndex="1" Margin="0 8"
+                         helpers:FocusBehavior.MoveOnEnter="True" Width="150" HorizontalAlignment="Left"/>
+
+                <TextBlock Text="A/c. Head Name" Grid.Row="1" Grid.Column="0"/>
+                <TextBox  x:Name="TxtAcHeadName" Grid.Row="1" Grid.Column="1" IsEnabled="False" TabIndex="2" Margin="0 8"
+                          helpers:FocusBehavior.MoveOnEnter="True" 
+                          helpers:TextBoxBehavior.SelectAllOnFocus="True"/>
+
+                <TextBlock Text="A/c. Category Name" Grid.Row="2" Grid.Column="0"/>
+                <controls:SmartComboBox  x:Name="CmbAcCategoryName" Grid.Row="2" Grid.Column="1" IsEnabled="False" TabIndex="3" Margin="0 8"
+                         MoveOnEnter="True"/>
+
+                <TextBlock Text="A/c. Group" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center"/>
+                <ComboBox x:Name="CmbAcGroup" 
+                          Grid.Row="3" 
+                          Grid.Column="1" 
+                          IsEnabled="False" 
+                          TabIndex="4" 
+                          Margin="0,8"
+                          IsEditable="False"
+                          VerticalContentAlignment="Center"
+                          helpers:FocusBehavior.MoveOnEnter="True">
+                    <ComboBoxItem Content="Balance Sheet"/>
+                    <ComboBoxItem Content="Direct Income/Expense"/>
+                    <ComboBoxItem Content="Indirect Income/Expense"/>
+                </ComboBox>
+
+                <TextBlock Text="Opening Credit" Grid.Row="4" Grid.Column="0"/>
+                <TextBox  x:Name="TxtOpeningCredit" Grid.Row="4" Grid.Column="1" IsEnabled="False" TabIndex="5" Margin="0 8"
+                          helpers:FocusBehavior.MoveOnEnter="True" Width="150" HorizontalAlignment="Left" 
+                          helpers:TextBoxBehavior.IsDecimal="True"
+                          helpers:TextBoxBehavior.SelectAllOnFocus="True"/>
+
+                <TextBlock Text="Opening Debit" Grid.Row="5" Grid.Column="0"/>
+                <TextBox  x:Name="TxtOpeningDebit" Grid.Row="5" Grid.Column="1" IsEnabled="False" TabIndex="6" Margin="0 8"
+                          helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnSave}" Width="150" HorizontalAlignment="Left"
+                          helpers:TextBoxBehavior.IsDecimal="True"
+                          helpers:TextBoxBehavior.SelectAllOnFocus="True"/>
+
+                <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <Button x:Name="btnNew" Content="New" Click="BtnNew_Click" TabIndex="0"/>
+                    <Button x:Name="btnDisplay" Content="Display" Click="BtnDisplay_Click" TabIndex="8"/>
+                    <Button x:Name="btnSave" Content="Save" Click="BtnSave_Click"  TabIndex="7" Style="{StaticResource PrimaryOutlineButton}" IsEnabled="False" />
+                    <Button x:Name="btnDelete" Content="Delete" Click="BtnDelete_Click" TabIndex="9" Style="{StaticResource DangerOutlineButton}" IsEnabled="False"/>
+                    <Button x:Name="BtnClose" Content="Close" helpers:CloseTabBehavior.CloseOnClick="True" TabIndex="10" Margin="0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+        <controls:GenericSearchOverlay x:Name="SearchOverlay" Grid.Row="0" Grid.RowSpan="3" Panel.ZIndex="999" Visibility="Collapsed" />
+    </Grid>
+</UserControl>

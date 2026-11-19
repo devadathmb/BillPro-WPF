@@ -1,0 +1,193 @@
+﻿<Window x:Class="BillPro.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Helpers="clr-namespace:BillPro.Helpers"
+        Title="BillPro - Sign In" Height="750" Width="1100"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized"
+        Background="#F4F5FA" WindowStyle="SingleBorderWindow">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/GlobalStyles.xaml"/>
+                <ResourceDictionary Source="/Resources/NavFlyoutStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <Style x:Key="LoginTextBox" TargetType="TextBox">
+                <Setter Property="Height" Value="44"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="Foreground" Value="#1A1A2E"/>
+                <Setter Property="BorderBrush" Value="#D8DCF4"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="12,0,12,0"/>
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontWeight" Value="DemiBold"/>
+                <Setter Property="CaretBrush" Value="{StaticResource BrandBlue}"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="TextBox">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Opacity="0.95">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsFocused" Value="True">
+                                    <Setter Property="BorderBrush" Value="{StaticResource BrandBlue}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="LoginPasswordBox" TargetType="PasswordBox">
+                <Setter Property="Height" Value="44"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="Foreground" Value="#1A1A2E"/>
+                <Setter Property="BorderBrush" Value="#D8DCF4"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="12,0,12,0"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="CaretBrush" Value="{StaticResource BrandBlue}"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="PasswordBox">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8" Opacity="0.95">
+                                <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsFocused" Value="True">
+                                    <Setter Property="BorderBrush" Value="{StaticResource BrandBlue}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            <Style x:Key="LoginButton" TargetType="Button">
+                <Setter Property="Height" Value="46"/>
+                <Setter Property="Background" Value="{StaticResource BrandBlue}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="#2E6DA0"/>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="border" Property="Background" Value="{StaticResource BrandBlueDark}"/>
+                                </Trigger>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter TargetName="border" Property="Background" Value="#B9C2D9"/>
+                                    <Setter Property="Foreground" Value="#F2F4FA"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <!-- RootGrid is the shared coordinate space: imgLogoWatermark and
+         imgLogoBlurred are both stretched to fill it exactly, so their own
+         local (0,0) matches RootGrid's (0,0) 1:1 — that alignment is what
+         makes the card-shaped clip land in the right place (see
+         UpdateGlassCardMask in code-behind for why the previous version
+         was offset). -->
+    <Grid x:Name="RootGrid" Background="#F4F5FA">
+
+        <!-- SHARP logo layer, filling the entire window — same
+             dashboard-logo.png DashboardView uses, same UniformToFill
+             full-bleed treatment as its imgLogoWatermark. -->
+        <Image x:Name="imgLogoWatermark"
+               Stretch="UniformToFill"
+               Opacity="0.18"
+               HorizontalAlignment="Stretch" VerticalAlignment="Center"
+               IsHitTestVisible="False"
+               Panel.ZIndex="0"/>
+
+        <!-- BLURRED twin, same size/position as imgLogoWatermark (both
+             Stretch to fill RootGrid exactly). Clip is set in code-behind
+             to GlassCard's bounds, computed in THIS element's own local
+             coordinate space via TransformToVisual(imgLogoBlurred) — not
+             RootGrid's — since Clip geometry is always local to the
+             element it's applied to. -->
+        <Image x:Name="imgLogoBlurred"
+               Stretch="UniformToFill"
+               Opacity="0.5"
+               HorizontalAlignment="Center" VerticalAlignment="Center"
+               IsHitTestVisible="False"
+               Panel.ZIndex="1">
+            <Image.Effect>
+                <BlurEffect Radius="20" KernelType="Gaussian"/>
+            </Image.Effect>
+        </Image>
+
+        <!-- ── GLASS LOGIN CARD — same translucent-white look as
+             Dashboard's CardStyle ─────────────────────────────────────── -->
+        <Border x:Name="GlassCard" Panel.ZIndex="2"
+                Width="400" Height="Auto" HorizontalAlignment="Center" VerticalAlignment="Center"
+                CornerRadius="16" Padding="40,36,40,36"
+                BorderThickness="1">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#FFFFFF" Opacity="0.7"/>
+            </Border.BorderBrush>
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#CCFFFFFF" Offset="0"/>
+                    <GradientStop Color="#99FFFFFF" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+                <DropShadowEffect Color="#B0B4C8" Opacity="0.35" BlurRadius="30" ShadowDepth="6"/>
+            </Border.Effect>
+
+            <StackPanel>
+                <TextBlock x:Name="txtCompanyNameLine1" Text="Your Company Name"
+                           Foreground="#1A1A2E" FontSize="24" FontWeight="Black"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"/>
+                <TextBlock x:Name="txtCompanyNameLine2" Text=""
+                           Foreground="#1A1A2E" FontSize="24" FontWeight="Black"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center"
+                           Visibility="Collapsed"/>
+                <TextBlock Text="Inventory &amp; Billing" Foreground="#8890A8" FontSize="12"
+                           HorizontalAlignment="Center" Margin="0,4,0,30"/>
+
+                <TextBlock Text="Username" Foreground="#6B7690" FontSize="12" Margin="2,0,0,6"/>
+                <TextBox x:Name="txtUsername" Style="{StaticResource LoginTextBox}" Margin="0,0,0,16"
+                         KeyDown="Input_KeyDown"
+                         Helpers:FocusBehavior.MoveOnEnter="True"
+                         TextAlignment="Center"/>
+
+                <TextBlock Text="Password" Foreground="#6B7690" FontSize="12" Margin="2,0,0,6"/>
+                <PasswordBox x:Name="txtPassword" Style="{StaticResource LoginPasswordBox}" Margin="0,0,0,4"
+                             KeyDown="Input_KeyDown"
+                             Helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnLogin}" 
+                             HorizontalContentAlignment="Center"/>
+
+                <TextBlock x:Name="txtError" Foreground="#D9534F" FontSize="12" Margin="2,8,0,0"
+                           TextWrapping="Wrap" Visibility="Collapsed"/>
+
+                <Button x:Name="btnLogin" Content="Sign In" Style="{StaticResource LoginButton}"
+                        Margin="0,24,0,0" Click="BtnLogin_Click"/>
+
+                <TextBlock x:Name="txtBusy" Text="Signing in..." Foreground="#8890A8" FontSize="11"
+                           HorizontalAlignment="Center" Margin="0,12,0,0" Visibility="Collapsed"/>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Text="Devsoft (+91 97466 83978)" Foreground="#B0B4C8" FontSize="11" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                   Margin="0,0,16,12" Panel.ZIndex="2"/>
+    </Grid>
+</Window>

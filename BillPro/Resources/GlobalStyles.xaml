@@ -1,0 +1,337 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:helpers="clr-namespace:BillPro.Helpers"
+                    xmlns:controls="clr-namespace:BillPro.Controls"
+                    xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+                    xmlns:sfgrid="clr-namespace:Syncfusion.UI.Xaml.Grid;assembly=Syncfusion.SfGrid.WPF">
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         BRAND PALETTE  (sampled from the DevSoft logo)
+         ═══════════════════════════════════════════════════════════════════
+         Steel-blue arc + navy diamonds + red "D" — these five brushes are
+         the single source of truth for the app's accent color. Every style
+         below that used to hardcode a Tailwind-blue or indigo hex now
+         references one of these instead, so re-theming later means editing
+         these five lines, not hunting through every file. -->
+    <SolidColorBrush x:Key="BrandBlue" Color="#1F5C9E"/>
+    <!-- primary actions, links, selected state -->
+    <SolidColorBrush x:Key="BrandBlueDark" Color="#123A63"/>
+    <!-- pressed/emphasis text on light backgrounds -->
+    <SolidColorBrush x:Key="BrandBlueLight" Color="#EAF2FB"/>
+    <!-- tinted panel/band backgrounds -->
+    <SolidColorBrush x:Key="BrandBlueBorder" Color="#BBD6EC"/>
+    <!-- borders on tinted panels -->
+    <SolidColorBrush x:Key="BrandBlueSelected" Color="#D7E8F7"/>
+    <!-- selected grid cell / hover fill -->
+    <SolidColorBrush x:Key="BrandRed" Color="#B23A3F"/>
+    <!-- logo's red accent — reserve for brand-forward highlights, not destructive actions (DangerButton stays semantic red) -->
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         DEFAULT CONTROL STYLES
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <Style TargetType="TextBlock">
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Margin" Value="0,0,0,5"/>
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="DemiBold"/>
+    </Style>
+
+    <Style TargetType="TextBox">
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Margin" Value="0,0,0,5"/>
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
+
+    <Style TargetType="ComboBox">
+        <Setter Property="Height" Value="26"/>
+        <Setter Property="Margin" Value="0,0,0,5"/>
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
+
+    <Style TargetType="DatePicker">
+        <Setter Property="FontSize" Value="14"/>
+        <Setter Property="FontWeight" Value="DemiBold"/>
+        <Setter Property="Padding" Value="0, 0 ,0, 0"/>
+    </Style>
+
+    <Style TargetType="controls:SmartComboBox" BasedOn="{StaticResource {x:Type ComboBox}}"/>
+
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+    </Style>
+
+    <Style TargetType="Button">
+        <Setter Property="Width" Value="90"/>
+        <Setter Property="Height" Value="30"/>
+        <Setter Property="Margin" Value="0,0,10,0"/>
+        <Setter Property="Background" Value="#E5E7EB"/>
+        <Setter Property="BorderBrush" Value="Black"/>
+        <Setter Property="BorderThickness" Value="0.5"/>
+        <Setter Property="Foreground" Value="Black"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FontWeight" Value="DemiBold"/>
+        <Setter Property="FontSize" Value="14"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         NAMED BUTTON STYLES
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <Style x:Key="PrimaryOutlineButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="#E5E7EB"/>
+        <Setter Property="Foreground" Value="{StaticResource BrandBlue}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrandBlue}"/>
+        <Setter Property="BorderThickness" Value="0.5"/>
+    </Style>
+
+    <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="#EF4444"/>
+        <Setter Property="Foreground" Value="White"/>
+    </Style>
+
+    <Style x:Key="DangerOutlineButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="#E5E7EB"/>
+        <Setter Property="Foreground" Value="#EF4444"/>
+        <Setter Property="BorderBrush" Value="#EF4444"/>
+        <Setter Property="BorderThickness" Value="0.5"/>
+    </Style>
+
+    <!-- Small ✕ delete button used inside SfDataGrid cell templates -->
+    <Style x:Key="GridDeleteButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Content" Value="✕"/>
+        <Setter Property="Width" Value="24"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Margin" Value="0"/>
+        <Setter Property="FontSize" Value="11"/>
+        <Setter Property="Foreground" Value="#EF4444"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="ToolTip" Value="Delete row"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         NAMED TEXTBLOCK STYLES
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- Bold heading used at the top of each card section -->
+    <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="#374151"/>
+        <Setter Property="Margin" Value="10,6"/>
+    </Style>
+
+    <!-- Tiny caption label sitting above each field in an entry line -->
+    <Style x:Key="EntryFieldLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="10.5"/>
+        <Setter Property="FontWeight" Value="ExtraBold"/>
+        <Setter Property="Foreground" Value="#535963"/>
+        <Setter Property="Margin" Value="1,0,0,2"/>
+        <Setter Property="VerticalAlignment" Value="Bottom"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         NAMED TEXTBOX STYLES
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- Auto-filled read-only display field (grey) -->
+    <Style x:Key="ReadOnlyField" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="Background" Value="#F3F4F6"/>
+        <Setter Property="Foreground" Value="#6B7280"/>
+    </Style>
+
+    <!-- Editable numeric entry field: decimal-only + select-all on focus -->
+    <Style x:Key="EntryNumericField" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="helpers:TextBoxBehavior.IsDecimal" Value="True"/>
+        <Setter Property="helpers:TextBoxBehavior.SelectAllOnFocus" Value="True"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         NAMED BORDER STYLES
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!-- White rounded card used for items / expenses / footer sections -->
+    <Style x:Key="CardBorder" TargetType="Border">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#D1D5DB"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="4"/>
+        <Setter Property="Margin" Value="4,4,4,0"/>
+    </Style>
+
+    <!-- White panel with only a bottom divider line (header bar, vendor row) -->
+    <Style x:Key="PanelBorder" TargetType="Border">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="BorderBrush" Value="#D1D5DB"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+    </Style>
+
+    <!-- Blue-tinted entry strip above the items grid -->
+    <Style x:Key="ItemEntryBand" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BrandBlueLight}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource BrandBlueBorder}"/>
+        <Setter Property="BorderThickness" Value="0,1,0,1"/>
+        <Setter Property="Padding" Value="10,8,10,10"/>
+    </Style>
+
+    <!-- Green-tinted entry strip above the expenses grid -->
+    <Style x:Key="ExpenseEntryBand" TargetType="Border">
+        <Setter Property="Background" Value="#F0FDF4"/>
+        <Setter Property="BorderBrush" Value="#BBF7D0"/>
+        <Setter Property="BorderThickness" Value="0,1,0,1"/>
+        <Setter Property="Padding" Value="10,8,10,10"/>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         DATA GRID STYLES  (standard WPF DataGrid)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <Style TargetType="DataGrid">
+        <Setter Property="Background" Value="White"/>
+        <Setter Property="RowBackground" Value="White"/>
+        <Setter Property="AlternatingRowBackground" Value="#F9FAFB"/>
+        <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+        <Setter Property="HorizontalGridLinesBrush" Value="#E5E7EB"/>
+        <Setter Property="BorderBrush" Value="#D1D5DB"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="HeadersVisibility" Value="Column"/>
+    </Style>
+
+    <Style TargetType="DataGridColumnHeader">
+        <Setter Property="FontWeight" Value="DemiBold"/>
+        <Setter Property="Background" Value="#F3F4F6"/>
+        <Setter Property="Foreground" Value="#374151"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="BorderBrush" Value="#D1D5DB"/>
+    </Style>
+
+    <Style TargetType="DataGridCell">
+        <Setter Property="Padding" Value="10,5"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="DataGridCell">
+                    <Border x:Name="CellBorder" Padding="{TemplateBinding Padding}" Background="Transparent">
+                        <ContentPresenter VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="CellBorder" Property="Background" Value="{StaticResource BrandBlueSelected}"/>
+                            <Setter Property="Foreground" Value="{StaticResource BrandBlueDark}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         REPORT GRAND-TOTAL SUMMARY ROW  (SfDataGrid table summary)
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <!--
+      Shared style for every report's GridTableSummaryRow cells. A thin gray
+      rule above (separates the total from the last data row) and a classic
+      accounting double-rule below (thin + thick line) — same convention as
+      a printed ledger's final total. Bold, larger, colored text so it
+      actually stands out instead of just being a slightly different row.
+
+      Per-report usage — thanks to SummaryStyleSelector building its left/right
+      styles from this one internally, each report's SfDataGrid.Resources now
+      only needs a single line:
+
+        <helpers:SummaryStyleSelector x:Key="summaryStyleSelector" LeftAlignColumns="ItemName"/>
+
+      ...then set SfDataGrid.TableSummaryCellStyleSelector to
+      {StaticResource summaryStyleSelector} as usual. See CurrentStockReportView.xaml
+      for a working example. LeftAlignColumns takes a comma-separated list if
+      more than one summary column is text (e.g. "ItemName,Remarks") — every
+      other summary column defaults to right-aligned.
+    -->
+    <Style x:Key="ReportSummaryCellStyle" TargetType="syncfusion:GridTableSummaryCell">
+        <Setter Property="Background" Value="{StaticResource BrandBlueLight}"/>
+        <Setter Property="Padding" Value="10,0"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="syncfusion:GridTableSummaryCell">
+                    <Grid Background="{TemplateBinding Background}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <!-- separator above -->
+                            <RowDefinition Height="*"/>
+                            <!-- content -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- double-rule line 1 (thin) -->
+                            <RowDefinition Height="Auto"/>
+                            <!-- double-rule line 2 (thick) -->
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0" Height="1" Background="#9CA3AF"/>
+
+                        <!--
+                          ContentTemplate here is doing the real work: a plain
+                          Style Setter for FontSize/FontWeight on the cell
+                          itself was NOT enough, because Syncfusion's internal
+                          summary-content generation was setting FontSize/
+                          FontWeight as LOCAL values on whatever it builds to
+                          display the text — and a local value always beats
+                          an inherited one, regardless of Style specificity.
+                          An explicit ContentTemplate forces WPF to build a
+                          fresh TextBlock we fully control instead, so these
+                          settings actually take effect.
+                        -->
+                        <ContentPresenter Grid.Row="1"
+                                           Margin="{TemplateBinding Padding}"
+                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <ContentPresenter.ContentTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}"
+                                               FontSize="14"
+                                               FontWeight="ExtraBold"
+                                               Foreground="Black"/>
+                                </DataTemplate>
+                            </ContentPresenter.ContentTemplate>
+                        </ContentPresenter>
+
+                        <Border Grid.Row="2" Height="1" Background="#9CA3AF"/>
+                        <Border Grid.Row="3" Height="0" Background="#9CA3AF"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SYNCFUSION SFGRID STYLES
+         ═══════════════════════════════════════════════════════════════════ -->
+
+    <Style TargetType="sfgrid:GridCell">
+        <Setter Property="Padding" Value="0"/>
+        <!-- Right border = column divider line; Bottom border = row separator line -->
+        <Setter Property="BorderThickness" Value="0,0,1,1"/>
+        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+
+    <Style TargetType="sfgrid:GridHeaderCellControl">
+        <Setter Property="FontWeight" Value="DemiBold"/>
+        <Setter Property="Background" Value="#F3F4F6"/>
+        <Setter Property="Foreground" Value="#374151"/>
+        <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+        <Setter Property="BorderBrush" Value="#D1D5DB"/>
+    </Style>
+
+    <Style TargetType="sfgrid:VirtualizingCellsControl">
+        <Setter Property="Background" Value="White"/>
+    </Style>
+
+</ResourceDictionary>

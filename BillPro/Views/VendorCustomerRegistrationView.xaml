@@ -1,0 +1,87 @@
+﻿<UserControl x:Class="BillPro.Views.VendorCustomerRegistrationView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:helpers="clr-namespace:BillPro.Helpers"
+        xmlns:controls ="clr-namespace:BillPro.Controls"
+        >
+
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="15,0,15,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="175" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <TextBlock Text="Vendor/Customer Name" Grid.Row="0" Grid.Column="0" />
+            <TextBox x:Name="txtName" Grid.Row="0" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtAddress1" />
+
+            <TextBlock Text="Address" Grid.Row="1" Grid.Column="0" />
+            <TextBox x:Name="txtAddress1" Grid.Row="1" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtAddress2" />
+            <TextBox x:Name="txtAddress2" Grid.Row="2" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtAddress3" />
+            <TextBox x:Name="txtAddress3" Grid.Row="3" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtPlace" />
+
+            <TextBlock Text="Place" Grid.Row="4" Grid.Column="0" />
+            <TextBox x:Name="txtPlace" Grid.Row="4" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtPin" />
+
+            <TextBlock Text="Pin" Grid.Row="5" Grid.Column="0" />
+            <TextBox x:Name="txtPin" Grid.Row="5" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtPhone" />
+
+            <TextBlock Text="Phone" Grid.Row="6" Grid.Column="0" />
+            <TextBox x:Name="txtPhone" Grid.Row="6" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtMobile" />
+
+            <TextBlock Text="Mobile" Grid.Row="7" Grid.Column="0" />
+            <TextBox x:Name="txtMobile" Grid.Row="7" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtFax" />
+
+            <TextBlock Text="Fax" Grid.Row="8" Grid.Column="0" />
+            <TextBox x:Name="txtFax" Grid.Row="8" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtEmail" />
+
+            <TextBlock Text="Email" Grid.Row="9" Grid.Column="0" />
+            <TextBox x:Name="txtEmail" Grid.Row="9" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtGst" />
+
+            <TextBlock Text="GST No" Grid.Row="10" Grid.Column="0" />
+            <TextBox x:Name="txtGst" Grid.Row="10" Grid.Column="1" KeyDown="Field_KeyDown" Tag="txtContactPerson" />
+
+            <TextBlock Text="Contact Person" Grid.Row="11" Grid.Column="0" />
+            <TextBox x:Name="txtContactPerson" Grid.Row="11" Grid.Column="1" KeyDown="Field_KeyDown" Tag="cmbCategory" />
+
+            <TextBlock Text="Category" Grid.Row="12" Grid.Column="0" />
+            <ComboBox x:Name="cmbCategory" Grid.Row="12" Grid.Column="1" HorizontalAlignment="Left" Width="150" KeyDown="Field_KeyDown" Tag="cmb194Q"
+                      helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnSave}">
+                <ComboBoxItem Content="Customer"/>
+                <ComboBoxItem Content="Vendor"/>
+                <ComboBoxItem Content="Both"/>
+
+            </ComboBox>
+        </Grid>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,20,0,0">
+            <Button x:Name="btnNew"     Content="New"     Click="BtnNew_Click"/>
+            <Button x:Name="btnDisplay" Content="Display" Click="BtnDisplay_Click"/>
+            <Button x:Name="btnSave"    Content="Save"    Click="BtnSave_Click" Style="{StaticResource PrimaryOutlineButton}" IsEnabled="False"/>
+            <Button x:Name="btnDelete"  Content="Delete"  Click="BtnDelete_Click" Style="{StaticResource DangerOutlineButton}" IsEnabled="False"/>
+            <Button x:Name="btnClose"   Content="Close"   helpers:CloseTabBehavior.CloseOnClick="True"  Margin="0"/>
+        </StackPanel>
+        <controls:GenericSearchOverlay x:Name="SearchOverlay" Grid.RowSpan="2" Panel.ZIndex="999"/>
+    </Grid>
+</UserControl>

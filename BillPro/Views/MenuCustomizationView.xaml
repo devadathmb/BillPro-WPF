@@ -1,0 +1,159 @@
+﻿<UserControl x:Class="BillPro.Views.MenuCustomizationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#E9ECEF">
+
+    <UserControl.Resources>
+        <Style x:Key="BigCheckBox" TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Bigger expand/collapse chevron + more breathing room per row.
+             Based on the default TreeViewItem template, with just the
+             ToggleButton (chevron) and item spacing enlarged — everything
+             else (selection, virtualization) stays default WPF behavior. -->
+        <Style x:Key="RoomyTreeViewItem" TargetType="TreeViewItem">
+            <Setter Property="Padding" Value="4,6"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TreeViewItem">
+                        <StackPanel>
+                            <Border x:Name="RowBorder" Padding="{TemplateBinding Padding}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="28"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <ToggleButton x:Name="Expander" Grid.Column="0"
+                                                  IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}"
+                                                  ClickMode="Press" Focusable="False"
+                                                  Width="24" Height="24" VerticalAlignment="Center">
+                                        <ToggleButton.Style>
+                                            <Style TargetType="ToggleButton">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ToggleButton">
+                                                            <Border Background="Transparent">
+                                                                <Path x:Name="Arrow" Data="M 4 2 L 10 8 L 4 14"
+                                                                      Stroke="#4B5563" StrokeThickness="2.2"
+                                                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                                                      StrokeLineJoin="Round"
+                                                                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                      RenderTransformOrigin="0.5,0.5">
+                                                                    <Path.RenderTransform>
+                                                                        <RotateTransform Angle="0"/>
+                                                                    </Path.RenderTransform>
+                                                                </Path>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <!-- Can't name a Freezable (RotateTransform) nested inside
+                                                                     a property element and use it as a TargetName — WPF's
+                                                                     trigger namescope only resolves FrameworkElements that
+                                                                     way. Targeting the Path itself and reaching into its
+                                                                     RenderTransform via a property path is the standard
+                                                                     workaround. -->
+                                                                <Trigger Property="IsChecked" Value="True">
+                                                                    <Setter TargetName="Arrow" Property="RenderTransform">
+                                                                        <Setter.Value>
+                                                                            <RotateTransform Angle="90"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ToggleButton.Style>
+                                    </ToggleButton>
+
+                                    <ContentPresenter x:Name="PART_Header" Grid.Column="1"
+                                                       ContentSource="Header"
+                                                       VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+                            <ItemsPresenter x:Name="ItemsHost" Margin="26,0,0,0"/>
+                        </StackPanel>
+
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="False">
+                                <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter TargetName="Expander" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RowBorder" Property="Background" Value="#F3F4F6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" BorderBrush="#D1D5DB" BorderThickness="1"
+                CornerRadius="4" Padding="12" Margin="0,0,0,10">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="User:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                <ComboBox x:Name="cmbUser" Width="240" DisplayMemberPath="display_name"
+                          SelectionChanged="CmbUser_SelectionChanged"/>
+                <TextBlock Text="Only Normal users appear here — Admin and Developer accounts always see every screen."
+                           Foreground="#6B7280" FontStyle="Italic" Margin="16,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Background="White" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="4">
+            <TreeView x:Name="treeMenu" BorderThickness="0" Padding="10" FontSize="14"
+                      ItemContainerStyle="{StaticResource RoomyTreeViewItem}">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox Style="{StaticResource BigCheckBox}"
+                                      IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                      Margin="0,0,14,0"/>
+                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="FontWeight" Value="Normal"/>
+                                        <Setter Property="Foreground" Value="#111827"/>
+                                        <Style.Triggers>
+                                            <!-- Section/group headers (non-leaf) read as bold and
+                                                 slightly larger so the tree's grouping is obvious
+                                                 at a glance, not just implied by indentation. -->
+                                            <DataTrigger Binding="{Binding IsLeaf}" Value="False">
+                                                <Setter Property="FontWeight" Value="Bold"/>
+                                                <Setter Property="FontSize" Value="15"/>
+                                                <Setter Property="Foreground" Value="#1F5C9E"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </Border>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <TextBlock x:Name="txtSavedFlag" Text="Saved ✓" Foreground="#059669"
+                       VerticalAlignment="Center" Margin="0,0,10,0" Visibility="Collapsed"/>
+            <Button x:Name="btnSave" Content="Save" Width="100" Height="30" Click="BtnSave_Click"
+                    Style="{StaticResource PrimaryOutlineButton}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

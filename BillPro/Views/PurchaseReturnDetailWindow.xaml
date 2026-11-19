@@ -1,0 +1,115 @@
+﻿<Window x:Class="BillPro.Views.PurchaseReturnDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Purchase Return Details"
+        Height="620" Width="820"
+        WindowStartupLocation="CenterOwner"
+        Background="#E9ECEF">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="PURCHASE RETURN DETAILS"
+                   FontSize="16" FontWeight="Bold" Foreground="#1D4ED8" Margin="0,0,0,10"/>
+
+        <!-- Header info -->
+        <Border Grid.Row="1" Background="White" BorderBrush="#D1D5DB" BorderThickness="1"
+                Padding="12" Margin="0,0,0,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Entry No" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtEntryNo" FontWeight="SemiBold" FontSize="14"/>
+                    <TextBlock Text="Entry Date" FontSize="11" Foreground="#6B7280" Margin="0,6,0,0"/>
+                    <TextBlock x:Name="txtEntryDate" FontWeight="SemiBold" FontSize="14"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Vendor" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtVendorName" FontWeight="SemiBold" FontSize="14" TextWrapping="Wrap"/>
+                    <TextBlock Text="GSTIN / Reg No" FontSize="11" Foreground="#6B7280" Margin="0,6,0,0"/>
+                    <TextBlock x:Name="txtGstNo" FontWeight="SemiBold" FontSize="14"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Against Bill No" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtOriginalBillNo" FontWeight="SemiBold" FontSize="14"/>
+                    <TextBlock Text="Bill Type" FontSize="11" Foreground="#6B7280" Margin="0,6,0,0"/>
+                    <TextBlock x:Name="txtBillType" FontWeight="SemiBold" FontSize="14"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Items grid -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#D1D5DB" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Items" FontWeight="Bold" Margin="10,8,0,4"/>
+                <DataGrid x:Name="gridItems" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                          HeadersVisibility="Column" CanUserAddRows="False" CanUserDeleteRows="False"
+                          GridLinesVisibility="Horizontal" BorderThickness="0" Margin="0,0,0,4">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Item Code" Binding="{Binding ItemCode}" Width="90"/>
+                        <DataGridTextColumn Header="Item Name" Binding="{Binding ItemName}" Width="*"/>
+                        <DataGridTextColumn Header="Batch"     Binding="{Binding BatchNumber}" Width="90"/>
+                        <DataGridTextColumn Header="Rate"      Binding="{Binding Rate, StringFormat=N2}"     Width="80"/>
+                        <DataGridTextColumn Header="Qty"       Binding="{Binding Qty, StringFormat=N2}"      Width="70"/>
+                        <DataGridTextColumn Header="Discount"  Binding="{Binding DiscountAmount, StringFormat=N2}" Width="80"/>
+                        <DataGridTextColumn Header="Tax %"     Binding="{Binding TaxPercent, StringFormat=N2}"  Width="65"/>
+                        <DataGridTextColumn Header="Tax Amt"   Binding="{Binding TaxAmount, StringFormat=N2}" Width="80"/>
+                        <DataGridTextColumn Header="Total"     Binding="{Binding TotalAmount, StringFormat=N2}" Width="90"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Settlement summary -->
+        <Border Grid.Row="3" Background="White" BorderBrush="#D1D5DB" BorderThickness="1"
+                Padding="12" Margin="0,10,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Net Total" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtNetTotal" FontWeight="Bold" FontSize="15"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="Cash" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtCash" FontWeight="SemiBold" FontSize="14"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Bank" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtBank" FontWeight="SemiBold" FontSize="14"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Bank Head" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtBankHead" FontWeight="SemiBold" FontSize="14"/>
+                </StackPanel>
+                <StackPanel Grid.Column="4">
+                    <TextBlock Text="Credit (adj.)" FontSize="11" Foreground="#6B7280"/>
+                    <TextBlock x:Name="txtCredit" FontWeight="SemiBold" FontSize="14" Foreground="#B91C1C"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button x:Name="btnClose" Content="Close" MinWidth="90" Padding="10,6" Click="BtnClose_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

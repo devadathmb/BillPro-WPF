@@ -1,0 +1,186 @@
+﻿<UserControl x:Class="BillPro.Views.UserRegistrationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:iconPacks="clr-namespace:MahApps.Metro.IconPacks;assembly=MahApps.Metro.IconPacks.Material"
+             xmlns:helpers="clr-namespace:BillPro.Helpers"
+             Background="#E9ECEF">
+
+    <UserControl.Resources>
+        <!-- Scaled-up checkbox for the CREATE USER form. Here LayoutTransform
+             is fine because the surrounding StackPanel/Grid can grow to fit it. -->
+        <Style x:Key="BigCheckBox" TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Scaled-up checkbox for the DataGrid columns. DataGridCell clips
+             content to its own (un-scaled) bounds, so a LayoutTransform there
+             gets visually cut off and stops registering correctly.
+             RenderTransform scales in place without affecting layout, so it
+             isn't clipped and renders/behaves correctly inside grid cells. -->
+        <Style x:Key="BigCheckBoxGrid" TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.5" ScaleY="1.5"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Can Edit / Can Delete: editable only for Normal users. Admin/Developer
+             always have full permissions per business rule, so the checkbox is
+             locked (still shown, just disabled) for anyone else. -->
+        <Style x:Key="ChkCanEditGrid" TargetType="CheckBox" BasedOn="{StaticResource BigCheckBoxGrid}">
+            <Setter Property="Tag" Value="CanEdit"/>
+            <EventSetter Event="Click" Handler="ChkPermission_Click"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding role}" Value="Admin">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ChkCanDeleteGrid" TargetType="CheckBox" BasedOn="{StaticResource BigCheckBoxGrid}">
+            <Setter Property="Tag" Value="CanDelete"/>
+            <EventSetter Event="Click" Handler="ChkPermission_Click"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding role}" Value="Admin">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Active: editable for Normal users. Admins can't be deactivated from
+             this screen either (Developer is never listed here at all, since
+             GetManageableUsers() excludes it). -->
+        <Style x:Key="ChkIsActiveGrid" TargetType="CheckBox" BasedOn="{StaticResource BigCheckBoxGrid}">
+            <Setter Property="Tag" Value="IsActive"/>
+            <EventSetter Event="Click" Handler="ChkPermission_Click"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding role}" Value="Admin">
+                    <Setter Property="IsEnabled" Value="False"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="15" VerticalAlignment="Center">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             CREATE USER
+             ═══════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#CCCCCC" BorderThickness="1"
+        CornerRadius="8" Padding="24,20" Margin="0,0,0,16" MaxWidth="900">
+            <StackPanel>
+                <TextBlock Text="CREATE USER" Style="{StaticResource SectionHeader}"
+                           FontSize="16" Margin="0,0,0,10"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Username"/>
+                    <TextBox x:Name="txtUsername" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"
+                             helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Display Name"/>
+                    <TextBox x:Name="txtDisplayName" Grid.Row="1" Grid.Column="1" Margin="0,8,0,8"
+                             helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Password"/>
+                    <PasswordBox x:Name="pwdPassword" Grid.Row="2" Grid.Column="1"
+                                 Height="26" FontSize="14" Margin="0,8,0,8"
+                                 helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="Confirm Password"/>
+                    <PasswordBox x:Name="pwdConfirm" Grid.Row="3" Grid.Column="1"
+                                 Height="26" FontSize="14" Margin="0,8,0,8"
+                                 helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="Role"/>
+                    <ComboBox x:Name="cmbRole" Grid.Row="4" Grid.Column="1" Margin="0,8,0,8"
+                              SelectionChanged="CmbRole_SelectionChanged"
+                              helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                    <StackPanel x:Name="pnlNormalPermissions" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                                Orientation="Horizontal" Margin="0,8,0,4" HorizontalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,28,0">
+                            <CheckBox x:Name="chkCanEdit" Style="{StaticResource BigCheckBox}" Margin="0,0,8,0" IsChecked="True"
+                                      helpers:FocusBehavior.MoveOnEnter="True"/>
+                            <TextBlock Text="Can Edit / Update Entries" Margin="0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="chkCanDelete" Style="{StaticResource BigCheckBox}" Margin="0,0,8,0" IsChecked="True"
+                                      helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnCreate}"/>
+                            <TextBlock Text="Can Delete / Cancel Entries" Margin="0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+
+                <Button x:Name="btnCreate" Content="Create User" Width="150"
+                        HorizontalAlignment="Center" Margin="0,14,0,0" Click="BtnCreate_Click"
+                        Style="{StaticResource PrimaryOutlineButton}"/>
+
+                <TextBlock x:Name="txtCreateError" Foreground="#DC2626" Margin="0,10,0,0"
+                           Visibility="Collapsed" TextWrapping="Wrap" TextAlignment="Center"/>
+                <TextBlock x:Name="txtCreateSuccess" Foreground="#059669" Margin="0,10,0,0"
+                           Visibility="Collapsed" TextAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             EXISTING USERS
+             ═══════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="14"
+                VerticalAlignment="Top" MaxWidth="900">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="EXISTING USERS" Style="{StaticResource SectionHeader}"
+                           FontSize="16" Margin="0,0,0,8"/>
+
+                <DataGrid x:Name="dgUsers" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="False"
+          CanUserAddRows="False" RowHeight="38" FontSize="14" MaxHeight="260" MaxWidth="760">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Username"     Binding="{Binding username}"     Width="140" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Display Name" Binding="{Binding display_name}" Width="200" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Role"         Binding="{Binding role}"          Width="100" IsReadOnly="True"/>
+
+                        <DataGridCheckBoxColumn Header="Can Edit" Binding="{Binding can_edit}" Width="90"
+                                                 ElementStyle="{StaticResource ChkCanEditGrid}"/>
+
+                        <DataGridCheckBoxColumn Header="Can Delete" Binding="{Binding can_delete}" Width="90"
+                                                 ElementStyle="{StaticResource ChkCanDeleteGrid}"/>
+
+                        <DataGridCheckBoxColumn Header="Active" Binding="{Binding is_active}" Width="80"
+                                                 ElementStyle="{StaticResource ChkIsActiveGrid}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

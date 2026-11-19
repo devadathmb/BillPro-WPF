@@ -1,0 +1,258 @@
+﻿<UserControl x:Class="BillPro.Views.CashbookReportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:BillPro.Helpers"
+             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+             Background="#E9ECEF"
+             Loaded="UserControl_Loaded">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Padding="15,10">
+            <TextBlock Text="CASH BOOK"
+                       FontSize="16" FontWeight="Bold" Foreground="#1D4ED8"/>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,4,0,0">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Bottom"
+                       Text="Grouped by day. Shows only the Cash ledger's own movements (see cash_transactions). Particulars shows the entry type (Sales/Purchase/Receipt/Payment/...) since the other-side ledger isn't tracked per cash leg. By = receipt (credit), To = payment (debit)."
+                       FontSize="10.5" Foreground="#9CA3AF" Margin="10,3" HorizontalAlignment="Left"/>
+                <syncfusion:SfDataGrid
+                x:Name="sfReport"
+                RowHeight="30"
+                HeaderRowHeight="36"
+                AutoGenerateColumns="False"
+                AllowEditing="False"
+                AllowSorting="False"
+                AllowFiltering="False"
+                AddNewRowPosition="None"
+                NavigationMode="Row"
+                SelectionMode="Single"
+                ColumnSizer="None"
+                AlternationCount="2"
+                AllowGrouping="False"
+                BorderThickness="0"
+                ShowRowHeader="False"
+                ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+                    <syncfusion:SfDataGrid.RowStyle>
+                        <Style TargetType="syncfusion:VirtualizingCellsControl">
+                            <Setter Property="Background" Value="White"/>
+                            <Style.Triggers>
+                                <!-- "Balance b/f" row at the top of each day —
+                                     set by TaxLedgerRepository.GetCashbookEntries. -->
+                                <DataTrigger Binding="{Binding IsOpeningBalance}" Value="True">
+                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </DataTrigger>
+                                <!-- Day Total row — computed in C# (TaxLedgerRepository
+                                     .BuildCashbookDayTotalRow), not a Syncfusion summary row. -->
+                                <DataTrigger Binding="{Binding IsDayTotal}" Value="True">
+                                    <Setter Property="Background" Value="#DCE7FB"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="FontSize" Value="13.5"/>
+                                </DataTrigger>
+                                <!-- Date-boundary banner — one synthetic row per
+                                     day (IsDateHeader), same row TaxLedgerRepository
+                                     already builds for Print/PDF/Excel. Rendered
+                                     as an ordinary row (not a Syncfusion group
+                                     caption — that path was unreliable for
+                                     picking up custom fonts/format on this
+                                     Syncfusion build), so it pops via
+                                     background tint + FontSize here and via the
+                                     Particulars column template below. -->
+                                <DataTrigger Binding="{Binding IsDateHeader}" Value="True">
+                                    <Setter Property="Background" Value="#C7D2FE"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </syncfusion:SfDataGrid.RowStyle>
+
+                    <syncfusion:SfDataGrid.AlternatingRowStyle>
+                        <Style TargetType="syncfusion:VirtualizingCellsControl">
+                            <Setter Property="Background" Value="#EFF6FF"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsOpeningBalance}" Value="True">
+                                    <Setter Property="Background" Value="#FEF3C7"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsDayTotal}" Value="True">
+                                    <Setter Property="Background" Value="#DCE7FB"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="FontSize" Value="13.5"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsDateHeader}" Value="True">
+                                    <Setter Property="Background" Value="#C7D2FE"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </syncfusion:SfDataGrid.AlternatingRowStyle>
+
+                    <!--
+                        No repeating Date column. Each day's block is instead:
+                        a synthetic IsDateHeader row (bold/bigger/tinted, via
+                        RowStyle above + the Particulars template below),
+                        then Balance b/f, then postings (ordered by bill
+                        number — see ReorderByBillNumber in code-behind), then
+                        Day Total. This is the same flat row list
+                        TaxLedgerRepository.GetCashbookEntries already builds
+                        for Print/PDF/Excel, now shown on screen too instead
+                        of being filtered out.
+
+                        Particulars and Narration are GridTemplateColumns
+                        with their base Text set via a Style Setter (not a
+                        local Text= attribute) — a locally-set Text always
+                        wins over a trigger Setter for the same property in
+                        WPF, so the base text has to be a Setter too for the
+                        DataTriggers below to be able to override it.
+                    -->
+                    <syncfusion:SfDataGrid.Columns>
+                        <syncfusion:GridTemplateColumn MappingName="AccountHeadDisplay" HeaderText="Particulars" Width="420">
+                            <syncfusion:GridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Padding="8,0" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                <Setter Property="Text" Value="{Binding AccountHeadDisplay}"/>
+                                                <Style.Triggers>
+                                                    <!-- Bolded to match every other field on this row —
+                                                         template columns don't inherit the row-level
+                                                         FontWeight setter the way GridTextColumn does. -->
+                                                    <DataTrigger Binding="{Binding IsOpeningBalance}" Value="True">
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsDayTotal}" Value="True">
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                        <Setter Property="FontSize" Value="13.5"/>
+                                                        <Setter Property="Text" Value="{Binding EntryDateLabel}"/>
+                                                    </DataTrigger>
+                                                    <!-- Date header: shows the date here, bumped a
+                                                         couple points bigger than a normal row so the
+                                                         day boundary really pops. -->
+                                                    <DataTrigger Binding="{Binding IsDateHeader}" Value="True">
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                        <Setter Property="FontSize" Value="15"/>
+                                                        <Setter Property="Foreground" Value="#1E3A8A"/>
+                                                        <Setter Property="Text" Value="{Binding EntryDateLabel}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </syncfusion:GridTemplateColumn.CellTemplate>
+                        </syncfusion:GridTemplateColumn>
+
+                        <syncfusion:GridTemplateColumn MappingName="Narration" HeaderText="Narration" Width="180">
+                            <syncfusion:GridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Padding="8,0" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                <Setter Property="Text" Value="{Binding Narration}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsOpeningBalance}" Value="True">
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                    </DataTrigger>
+                                                    <!-- Day Total row: Particulars shows the date
+                                                         (above), Narration shows "DAY TOTAL". -->
+                                                    <DataTrigger Binding="{Binding IsDayTotal}" Value="True">
+                                                        <Setter Property="FontWeight" Value="Bold"/>
+                                                        <Setter Property="FontSize" Value="13.5"/>
+                                                        <Setter Property="Text" Value="DAY TOTAL"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </syncfusion:GridTemplateColumn.CellTemplate>
+                        </syncfusion:GridTemplateColumn>
+
+                        <syncfusion:GridNumericColumn MappingName="Receipt"            HeaderText="Receipt"      ColumnSizer="Star" MinimumWidth="130" NumberDecimalDigits="2"/>
+                        <syncfusion:GridNumericColumn MappingName="Payment"            HeaderText="Payment"      ColumnSizer="Star" MinimumWidth="130" NumberDecimalDigits="2"/>
+                    </syncfusion:SfDataGrid.Columns>
+                </syncfusion:SfDataGrid>
+            </DockPanel>
+        </Border>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Margin="0,4,0,0"
+                BorderBrush="#111827" BorderThickness="0,1,0,0" Padding="16,10">
+            <Grid HorizontalAlignment="Right">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                    <TextBlock Text="Total Receipt" FontSize="11" Foreground="#6B7280" HorizontalAlignment="Right"/>
+                    <TextBlock x:Name="lblTotalReceipt" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="0,0,24,0">
+                    <TextBlock Text="Total Payment" FontSize="11" Foreground="#6B7280" HorizontalAlignment="Right"/>
+                    <TextBlock x:Name="lblTotalPayment" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Right"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Margin="0,0,24,0">
+                    <TextBlock Text="Difference" FontSize="11" Foreground="#6B7280" HorizontalAlignment="Right"/>
+                    <TextBlock x:Name="lblGrandTotal" FontSize="17" FontWeight="Bold" HorizontalAlignment="Right"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Closing Balance (Cash in Hand)" FontSize="11" Foreground="#6B7280" HorizontalAlignment="Right"/>
+                    <TextBlock x:Name="lblClosingBalance" FontSize="17" FontWeight="Bold" Foreground="#1D4ED8" HorizontalAlignment="Right"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3" Style="{StaticResource PanelBorder}" Padding="15,10" Margin="0,4,0,0" MaxHeight="200">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="3*" MinWidth="220"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2*" MinWidth="200"/>
+                </Grid.ColumnDefinitions>
+
+                <ScrollViewer Grid.Column="0" VerticalAlignment="Center"
+                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,20,4">
+                            <TextBlock Text="From:" Width="60" TextAlignment="Right" VerticalAlignment="Center"/>
+                            <DatePicker x:Name="dpFromDate" Width="140" Margin="6,0,0,0"
+                                        helpers:DatePickerOverwriteBehavior.IsEnabled="True"
+                                        SelectedDateChanged="Filter_Changed"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,4,20,4">
+                            <TextBlock Text="To:" Width="60" TextAlignment="Right" VerticalAlignment="Center"/>
+                            <DatePicker x:Name="dpToDate" Width="140" Margin="6,0,0,0"
+                                        helpers:DatePickerOverwriteBehavior.IsEnabled="True"
+                                        SelectedDateChanged="Filter_Changed"/>
+                        </StackPanel>
+                    </WrapPanel>
+                </ScrollViewer>
+
+                <Border Grid.Column="1" Width="1" Margin="16,2" Background="#D1D5DB"/>
+
+                <WrapPanel Grid.Column="2" Orientation="Horizontal"
+                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Button x:Name="btnDisplay" Content="_Display" Click="BtnDisplay_Click"
+                            Style="{StaticResource PrimaryOutlineButton}" MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnPrint"   Content="Print" Click="BtnPrint_Click"   MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnPdf"     Content="PDF"   Click="BtnPdf_Click"     MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnExcel"   Content="Excel" Click="BtnExcel_Click"   MinWidth="80" Margin="4"/>
+                    <Button x:Name="btnClose"   Content="Close" MinWidth="80" Margin="4"
+                            helpers:CloseTabBehavior.CloseOnClick="True"/>
+                </WrapPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

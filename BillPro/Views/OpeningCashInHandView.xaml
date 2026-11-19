@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="BillPro.Views.OpeningCashInHandView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:BillPro.Helpers"
+             Background="#E9ECEF">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Padding="15,10">
+            <TextBlock Text="OPENING CASH IN HAND"
+                       FontSize="16" FontWeight="Bold" Foreground="#1D4ED8"/>
+        </Border>
+
+        <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,4,0,0" Padding="16">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap" Foreground="#4B5563" Margin="0,0,0,12"
+                           Text="This is the starting cash-in-hand balance the Day Book's 'Balance b/f' figure is calculated from, instead of always assuming zero before the earliest posting. It's added on top of every posting ever made. If cash-in-hand is actually a shortfall, enter it as a negative number; it will show as a negative Receipt on the report rather than being counted as a payment."/>
+
+                <TextBlock Text="Current Opening Balance" FontSize="11" Foreground="#6B7280" Margin="0,0,0,2"/>
+                <TextBlock x:Name="lblCurrentBalance" FontSize="20" FontWeight="Bold" Margin="0,0,0,4"/>
+                <TextBlock x:Name="lblCurrentDetails" FontSize="11" Foreground="#6B7280" Margin="0,0,0,16"/>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,6">
+                    <TextBlock Text="Amount:" Width="60" TextAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBox x:Name="txtAmount" Width="140" Margin="6,0,0,0" VerticalContentAlignment="Center"
+                             HorizontalContentAlignment="Right"
+                             helpers:TextBoxBehavior.IsDecimal="True"
+                             helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnSave}"/>
+
+                    <Button x:Name="btnSave" Content="_Save Opening Balance" Click="BtnSave_Click"
+                            Style="{StaticResource PrimaryOutlineButton}" MinWidth="170" Margin="24,0,0,0"/>
+                </StackPanel>
+                <TextBlock x:Name="lblStatus" Margin="0,10,0,0" Foreground="#6B7280"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

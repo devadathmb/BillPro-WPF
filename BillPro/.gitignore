@@ -1,0 +1,10 @@
+﻿bin/
+obj/
+.vs/
+packages/
+*.user
+/data/
+*.db
+*.db-shm
+*.db-wal
+secrets.local.json

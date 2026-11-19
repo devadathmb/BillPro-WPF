@@ -1,0 +1,104 @@
+﻿<Window x:Class="BillPro.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:avalonDock="https://github.com/Dirkster99/AvalonDock"
+        Title="BillPro - Inventory and Billing" Height="750" Width="1100"
+        WindowStartupLocation="CenterScreen" WindowState="Maximized"
+        Background="#0E1F33">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/NavFlyoutStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ── SIDEBAR — now just a slim rail of top-level buttons.        -->
+        <!-- All previously-nested accordion panels are gone; everything   -->
+        <!-- below section level now lives in cascading Popup flyouts      -->
+        <!-- built at runtime by Controls.CascadingSidebarMenu — see       -->
+        <!-- MainWindow.xaml.cs -> BuildNavTree(). No more scrolling.      -->
+        <Border Grid.Column="0" x:Name="Sidebar" Background="#0B1826" BorderThickness="0,0,1,0" BorderBrush="{StaticResource NavFlyoutBorderBrush}">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="12,16,12,14" BorderThickness="0,0,0,1" BorderBrush="{StaticResource NavFlyoutBorderBrush}">
+                    <StackPanel x:Name="LogoPanel" Cursor="Hand" MouseLeftButtonUp="LogoPanel_Click">
+                        <TextBlock x:Name="txtCompanyName" Text="CV. Sumber Makmur Djaya Abadi" Foreground="{StaticResource NavIconBrush}"
+                                   FontSize="18" FontWeight="Black" TextWrapping="Wrap" LineHeight="19"/>
+                        <TextBlock Text="Inventory &amp; Billing" Foreground="#4A6178" FontSize="11" Margin="0,3,0,0"/>
+                    </StackPanel>
+                </Border>
+
+
+                <Border DockPanel.Dock="Bottom" BorderThickness="0,1,0,0" BorderBrush="{StaticResource NavFlyoutBorderBrush}"
+        Height="40" Padding="14,0,10,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="txtLoggedInUser" Grid.Column="0" Text=""
+                   Foreground="{StaticResource NavFlyoutHeaderBrush}" 
+                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                        <Button x:Name="btnLogout" Grid.Column="1" Content="⎋ Logout"
+                Foreground="{StaticResource NavIconBrush}" Background="Transparent" BorderThickness="0"
+                FontSize="12" Cursor="Hand" Padding="6,0" Click="BtnLogout_Click"/>
+                    </Grid>
+                </Border>
+                <!-- Expand/collapse toggle — pinned to the bottom of the sidebar
+                     instead of crowding the header next to the company name. -->
+                <Button DockPanel.Dock="Bottom" x:Name="btnToggleSidebar" Content="&#x2630;" Foreground="{StaticResource NavIconBrush}" MaxWidth="30"
+                        Background="Transparent" BorderThickness="0,0,0,0" BorderBrush="{StaticResource NavFlyoutBorderBrush}" FontSize="16" Margin="0"
+                        Cursor="Hand" Height="40" Click="ToggleSidebar_Click" />
+
+                <!-- No ScrollViewer needed any more — the whole point of   -->
+                <!-- flyouts is that this panel never grows past a handful -->
+                <!-- of section buttons. -->
+                <StackPanel x:Name="NavPanel" Margin="0,4,0,8"/>
+            </DockPanel>
+        </Border>
+
+        <avalonDock:DockingManager x:Name="DockManager" Grid.Column="1" Background="#FAF9F6" AllowMixedOrientation="True">
+            <avalonDock:DockingManager.Resources>
+                <!-- Equal-width tab headers: every open document tab gets the
+                     same width instead of auto-sizing to its title text.
+                     The Dashboard tab's header is collapsed entirely — it's
+                     still a real tab underneath (so it can be activated
+                     programmatically), it just never shows in the strip. -->
+                <Style TargetType="{x:Type avalonDock:LayoutDocumentTabItem}">
+                    <Setter Property="Width" Value="170"/>
+                    <Setter Property="MinWidth" Value="170"/>
+                    <Setter Property="MaxWidth" Value="170"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Title}" Value="Dashboard">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Setter Property="Width" Value="0"/>
+                            <Setter Property="MinWidth" Value="0"/>
+                            <Setter Property="MaxWidth" Value="0"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </avalonDock:DockingManager.Resources>
+            <avalonDock:DockingManager.DocumentHeaderTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Title}" Foreground="#000000" FontSize="14"
+                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Title}"/>
+                </DataTemplate>
+            </avalonDock:DockingManager.DocumentHeaderTemplate>
+            <avalonDock:LayoutRoot>
+                <avalonDock:LayoutPanel Orientation="Horizontal">
+                    <avalonDock:LayoutDocumentPaneGroup>
+                        <avalonDock:LayoutDocumentPane x:Name="MainDocumentPane"/>
+                    </avalonDock:LayoutDocumentPaneGroup>
+                </avalonDock:LayoutPanel>
+            </avalonDock:LayoutRoot>
+        </avalonDock:DockingManager>
+
+    </Grid>
+</Window>

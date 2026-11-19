@@ -1,0 +1,162 @@
+﻿<UserControl x:Class="BillPro.Views.OpeningBalanceEntryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:helpers="clr-namespace:BillPro.Helpers"
+             xmlns:syncfusion="http://schemas.syncfusion.com/wpf"
+             mc:Ignorable="d"
+             Background="#E9ECEF">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- title -->
+            <RowDefinition Height="Auto"/>
+            <!-- search box -->
+            <RowDefinition Height="*"/>
+            <!-- grid -->
+            <RowDefinition Height="Auto"/>
+            <!-- totals band -->
+            <RowDefinition Height="Auto"/>
+            <!-- divider -->
+            <RowDefinition Height="Auto"/>
+            <!-- opening cash-in-hand + action buttons -->
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             TITLE
+             ═══════════════════════════════════════════════════════════ -->
+        <TextBlock Grid.Row="0" Text="BALANCE SHEET — OPENING BALANCES"
+                   FontSize="16" FontWeight="Bold" Foreground="#1D4ED8"
+                   Margin="0,0,0,12"/>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SEARCH BOX
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="110"/>
+                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Search" VerticalAlignment="Center" FontSize="14" FontWeight="DemiBold"/>
+            <TextBox x:Name="txtSearch" Grid.Column="1"
+                     helpers:TextBoxBehavior.SelectAllOnFocus="True"
+                     TextChanged="TxtSearch_TextChanged"
+                     ToolTip="Filter by A/c Head Code or Name"
+                     VerticalContentAlignment="Center" Height="28"/>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             GRID — Balance Sheet a/c heads only. Credit/Debit editable.
+             ═══════════════════════════════════════════════════════════ -->
+        <syncfusion:SfDataGrid
+            x:Name="dgHeads"
+            Grid.Row="2"
+            AutoGenerateColumns="False"
+            AllowEditing="True"
+            AddNewRowPosition="None"
+            AllowDeleting="False"
+            AllowSorting="True"
+            AllowFiltering="False"
+            NavigationMode="Cell"
+            SelectionMode="Single"
+            ColumnSizer="None"
+            AlternationCount="2"
+            RowHeight="30"
+            HeaderRowHeight="32"
+            BorderThickness="1"
+            BorderBrush="#E5E7EB"
+            Background="#FFFFFF"
+            ScrollViewer.HorizontalScrollBarVisibility="Auto"
+            CurrentCellEndEdit="DgHeads_CurrentCellEndEdit">
+
+            <syncfusion:SfDataGrid.RowStyle>
+                <Style TargetType="syncfusion:VirtualizingCellsControl">
+                    <Setter Property="Background" Value="White"/>
+                </Style>
+            </syncfusion:SfDataGrid.RowStyle>
+
+            <syncfusion:SfDataGrid.AlternatingRowStyle>
+                <Style TargetType="syncfusion:VirtualizingCellsControl">
+                    <Setter Property="Background" Value="#EFF6FF"/>
+                </Style>
+            </syncfusion:SfDataGrid.AlternatingRowStyle>
+
+            <syncfusion:SfDataGrid.Columns>
+                <syncfusion:GridTextColumn MappingName="AcHeadCode" HeaderText="Code" Width="90" AllowEditing="False"/>
+
+                <syncfusion:GridTextColumn MappingName="AcHeadName" HeaderText="A/c Head Name"
+                                           ColumnSizer="Star" MinimumWidth="220" AllowEditing="False"/>
+
+                <syncfusion:GridNumericColumn MappingName="OpeningDebit" HeaderText="Opening Debit"
+                                              Width="140" NumberDecimalDigits="2" TextAlignment="Right"/>
+
+                <syncfusion:GridNumericColumn MappingName="OpeningCredit" HeaderText="Opening Credit"
+                                              Width="140" NumberDecimalDigits="2" TextAlignment="Right"/>
+            </syncfusion:SfDataGrid.Columns>
+        </syncfusion:SfDataGrid>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             TOTALS BAND
+             ═══════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="3" Background="#F3F4F6" BorderBrush="#E5E7EB" BorderThickness="1,0,1,1"
+                Padding="12,8" Margin="0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="140"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="TOTAL" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                <TextBlock x:Name="lblTotalDebit" Grid.Column="1" FontWeight="Bold" TextAlignment="Right"
+                           VerticalAlignment="Center" Text="0.00"/>
+
+                <TextBlock x:Name="lblTotalCredit" Grid.Column="2" FontWeight="Bold" TextAlignment="Right"
+                           VerticalAlignment="Center" Text="0.00"/>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3" Margin="0,34,0,0">
+            <!-- Difference row, placed just under the totals band -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+                <TextBlock Text="Difference (Debit − Credit): " FontWeight="DemiBold" VerticalAlignment="Center"/>
+                <TextBlock x:Name="lblDifference" FontWeight="Bold" VerticalAlignment="Center" Width="140" TextAlignment="Right" Text="0.00"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="4" Height="1" Background="#E5E7EB" Margin="0,12,0,12"/>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             OPENING CASH IN HAND (convenience duplicate of its own screen)
+             + ACTION BUTTONS
+             ═══════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Opening Cash In Hand:" VerticalAlignment="Center" FontWeight="DemiBold"/>
+                <TextBox x:Name="txtOpeningCash" Width="140" Margin="8,0,0,0"
+                         VerticalContentAlignment="Center" HorizontalContentAlignment="Right"
+                         helpers:TextBoxBehavior.IsDecimal="True"
+                         helpers:TextBoxBehavior.SelectAllOnFocus="True"
+                         TextChanged="TxtOpeningCash_TextChanged"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="btnSaveAll" Content="_Save All" Click="BtnSaveAll_Click"
+                        Style="{StaticResource PrimaryOutlineButton}"/>
+                <Button x:Name="btnPrint" Content="Print" Click="BtnPrint_Click" MinWidth="80" Margin="4,0"/>
+                <Button x:Name="btnPdf"   Content="PDF"   Click="BtnPdf_Click"   MinWidth="80" Margin="4,0"/>
+                <Button x:Name="btnExcel" Content="Excel" Click="BtnExcel_Click" MinWidth="80" Margin="4,0"/>
+                <Button x:Name="btnClose" Content="Close" Margin="0" helpers:CloseTabBehavior.CloseOnClick="True"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

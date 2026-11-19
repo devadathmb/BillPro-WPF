@@ -1,0 +1,649 @@
+﻿<UserControl x:Class="BillPro.Views.SalesReturnEntryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:helpers="clr-namespace:BillPro.Helpers"
+             xmlns:controls="clr-namespace:BillPro.Controls"
+             xmlns:sf="http://schemas.syncfusion.com/wpf"
+             Background="#E9ECEF"
+             Loaded="UserControl_Loaded">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             ROW 0 — HEADER BAR  (Entry No / Entry Date / Return Against Bill No / Bill Type)
+             Return-specific fields — retained from the original return form.
+             ═══════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="0" Style="{StaticResource PanelBorder}" Padding="15,8">
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,16,2">
+                    <TextBlock Text="Entry No:" VerticalAlignment="Center"/>
+                    <!-- Auto — never user-editable. Shows "(auto)" for a new entry,
+                         or the real saved one when editing. -->
+                    <TextBox x:Name="txtEntryNoPreview" Width="130" IsReadOnly="True"
+                             Background="#F3F4F6" FontWeight="Bold" Margin="6,0,0,0" Focusable="False"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,16,2">
+                    <TextBlock Text="Entry Date:" VerticalAlignment="Center"/>
+                    <DatePicker x:Name="dpEntryDate" IsEnabled="False" Width="120" Margin="6,0,0,0"
+                                helpers:DatePickerOverwriteBehavior.IsEnabled="True"
+                                FontSize="14" FontWeight="DemiBold"
+                                helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=txtOriginalBillNo}"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="0,2,16,2">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Return Against Bill No:" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtOriginalBillNo" IsEnabled="False" Width="150" Margin="6,0,0,0"
+                                 LostFocus="TxtOriginalBillNo_LostFocus"
+                                 helpers:FocusBehavior.MoveOnEnter="True"/>
+                    </StackPanel>
+                    <TextBlock x:Name="lblOriginalBillWarning" Foreground="#DC2626" FontSize="11"
+                               Visibility="Collapsed" Text="⚠ No matching sales bill found — you can still proceed."/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2,16,2">
+                    <TextBlock Text="Bill Type:" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="cmbBillType" IsEnabled="False" Width="90" Margin="6,0,0,0"
+                              SelectionChanged="CmbBillType_SelectionChanged"
+                              helpers:FocusBehavior.MoveOnEnter="True">
+                        <ComboBoxItem Content="Cash"/>
+                        <ComboBoxItem Content="Credit"/>
+                    </ComboBox>
+                </StackPanel>
+
+            </WrapPanel>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             ROW 1 — CUSTOMER PANEL
+             ═══════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="1" Style="{StaticResource PanelBorder}"
+                Padding="15,8,15,10" Margin="0,4,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2*" MinWidth="120"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2*" MinWidth="100"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1.5*" MinWidth="90"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1.5*" MinWidth="90"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Customer:" Grid.Row="0" Grid.Column="0" Margin="0,0,6,4" VerticalAlignment="Center"/>
+
+                <!-- Cash mode: plain text box (walk-in, no customer_code).
+                     Credit mode: ComboBox picking a registered customer. -->
+                <Grid x:Name="gridCashCustomer" Grid.Row="0" Grid.Column="1" Margin="0,0,0,4">
+                    <TextBox x:Name="txtCashCustomerName" IsEnabled="False"
+                             helpers:FocusBehavior.MoveOnEnter="True"
+                             ToolTip="Type any name, or press F1 to pick a registered customer"
+                             PreviewKeyDown="TxtCashCustomerName_PreviewKeyDown"/>
+
+                    <Popup x:Name="popupCustomerLookup"
+                           PlacementTarget="{Binding ElementName=txtCashCustomerName}"
+                           Placement="Bottom" StaysOpen="False"
+                           AllowsTransparency="True"
+                           Opened="PopupCustomerLookup_Opened">
+                        <Border Background="White" BorderBrush="#CBD5E1" BorderThickness="1"
+                                CornerRadius="4" Padding="6"
+                                MinWidth="{Binding ActualWidth, ElementName=txtCashCustomerName}"
+                                MinHeight="120" MaxHeight="260">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="8" ShadowDepth="2" Opacity="0.15"/>
+                            </Border.Effect>
+                            <StackPanel>
+                                <TextBlock Text="Press ↑↓ to navigate, Enter to select, Esc to cancel"
+                                           FontSize="10" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                                <controls:SmartComboBox x:Name="cmbCashCustomerLookup"
+                                          DisplayMemberPath="CustomerName"
+                                          SelectedValuePath="CustomerCode"
+                                          ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=AllCustomersList}"
+                                          IsEditable="True"
+                                          StaysOpenOnEdit="True"
+                                          TargetOnEnter="{Binding ElementName=txtCustomerAddress}"
+                                          SearchPaths="CustomerName,Mobile,Phone"
+                                          SelectionChanged="CmbCashCustomerLookup_SelectionChanged"
+                                          PreviewKeyDown="CmbCashCustomerLookup_PreviewKeyDown"/>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+                </Grid>
+
+                <controls:SmartComboBox x:Name="cmbCustomer" IsEnabled="False" Grid.Row="0" Grid.Column="1"
+                          Margin="0,0,0,4" Visibility="Collapsed"
+                          DisplayMemberPath="CustomerName"
+                          SelectedValuePath="CustomerCode"
+                          ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=AllCustomersList}"
+                          IsEditable="True"
+                          StaysOpenOnEdit="True"
+                          SearchPaths="CustomerName,Mobile,Phone"
+                          SelectionChanged="CmbCustomer_SelectionChanged"
+                          MoveOnEnter="True"/>
+
+                <TextBlock Text="Address:" Grid.Row="0" Grid.Column="3" Margin="0,0,6,4" VerticalAlignment="Center"/>
+                <TextBox x:Name="txtCustomerAddress" IsEnabled="False" Grid.Row="0" Grid.Column="4"
+                         Margin="0,0,0,4"
+                         helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                <TextBlock Text="GST No:" Grid.Row="0" Grid.Column="6" Margin="0,0,6,4" VerticalAlignment="Center"/>
+                <TextBox x:Name="txtCustomerGstNo" IsEnabled="False" Grid.Row="0" Grid.Column="7"
+                         Margin="0,0,0,4"
+                         helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                <TextBlock Text="Phone:" Grid.Row="0" Grid.Column="9" Margin="0,0,6,4" VerticalAlignment="Center"/>
+                <TextBox x:Name="txtCustomerPhone" IsEnabled="False" Grid.Row="0" Grid.Column="10"
+                         Margin="0,0,0,4"
+                         helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                <TextBlock Text="State:" Grid.Row="1" Grid.Column="3" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="txtState" IsEnabled="False" Grid.Row="1" Grid.Column="4"
+                         helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                <TextBlock Text="State Code:" Grid.Row="1" Grid.Column="6" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                <TextBox x:Name="txtStateCode" IsEnabled="False" Grid.Row="1" Grid.Column="7"
+                         helpers:FocusBehavior.MoveOnEnter="True"/>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             ROW 2 — RETURN ITEMS  (per-batch entry line + grid)
+             ═══════════════════════════════════════════════════════════════ -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="RETURN ITEMS" Style="{StaticResource SectionHeader}"/>
+
+                <!-- ── ITEM ENTRY LINE ─────────────────────────────────────── -->
+                <Border Grid.Row="1" Style="{StaticResource ItemEntryBand}">
+                    <StackPanel>
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                      VerticalContentAlignment="Bottom">
+                            <Grid VerticalAlignment="Bottom">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="230"/>
+                                    <!-- Item/Batch -->
+                                    <ColumnDefinition Width="1*"   MinWidth="70"/>
+                                    <!-- HSN -->
+                                    <ColumnDefinition Width="1*"   MinWidth="65"/>
+                                    <!-- Rate -->
+                                    <ColumnDefinition Width="1*"   MinWidth="70"/>
+                                    <!-- Unit Price -->
+                                    <ColumnDefinition Width="1*"   MinWidth="70"/>
+                                    <!-- Quantity -->
+                                    <ColumnDefinition Width="0.8*" MinWidth="60"/>
+                                    <!-- Discount % -->
+                                    <ColumnDefinition Width="1*"   MinWidth="65"/>
+                                    <!-- Disc Amt -->
+                                    <ColumnDefinition Width="1*"   MinWidth="70"/>
+                                    <!-- Taxable -->
+                                    <ColumnDefinition Width="0.8*" MinWidth="55"/>
+                                    <!-- Tax % -->
+                                    <ColumnDefinition Width="1*"   MinWidth="65"/>
+                                    <!-- Tax Amt -->
+                                    <ColumnDefinition Width="1.5*" MinWidth="110"/>
+                                    <!-- Total -->
+                                    <ColumnDefinition Width="Auto"/>
+                                    <!-- Add Item -->
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Item / Batch -->
+                                <StackPanel Grid.Column="0" Margin="0,4,7,0">
+                                    <TextBlock Text="Item / Batch" Style="{StaticResource EntryFieldLabel}"/>
+                                    <controls:SmartComboBox
+                                        x:Name="cmbEntryItem"
+                                        IsEnabled="False"
+                                        TextSearch.TextPath="ItemName"
+                                        SelectedValuePath="BatchId"
+                                        ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=AllBatchLookups}"
+                                        SelectionChanged="CmbEntryItem_SelectionChanged"
+                                        SearchPaths="ItemName,HsnCode,BatchNumber"
+                                        helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=txtEntryRate}"
+                                        helpers:FocusBehavior.TargetOnTab="{Binding ElementName=txtByCash}">
+
+                                        <controls:SmartComboBox.GroupStyle>
+                                            <GroupStyle>
+                                                <GroupStyle.HeaderTemplate>
+                                                    <DataTemplate>
+                                                        <Border Background="#F9FAFB" BorderBrush="#E5E7EB"
+                                                            BorderThickness="0,0,0,1" Padding="0,4">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="60"/>
+                                                                    <ColumnDefinition Width="150"/>
+                                                                    <ColumnDefinition Width="80"/>
+                                                                    <ColumnDefinition Width="60"/>
+                                                                    <ColumnDefinition Width="60"/>
+                                                                    <ColumnDefinition Width="70"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="Code"   Style="{StaticResource EntryFieldLabel}" FontWeight="Bold" Foreground="#4B5563" Margin="4,2"/>
+                                                                <TextBlock Grid.Column="1" Text="Item Name" Style="{StaticResource EntryFieldLabel}" FontWeight="Bold" Foreground="#4B5563" Margin="4,2"/>
+                                                                <TextBlock Grid.Column="2" Text="Batch"  Style="{StaticResource EntryFieldLabel}" FontWeight="Bold" Foreground="#4B5563" Margin="4,2"/>
+                                                                <TextBlock Grid.Column="3" Text="MRP"    Style="{StaticResource EntryFieldLabel}" FontWeight="Bold" Foreground="#4B5563" Margin="4,2" TextAlignment="Right"/>
+                                                                <TextBlock Grid.Column="4" Text="Rate"   Style="{StaticResource EntryFieldLabel}" FontWeight="Bold" Foreground="#4B5563" Margin="4,2" TextAlignment="Right"/>
+                                                                <TextBlock Grid.Column="5" Text="Stock"  Style="{StaticResource EntryFieldLabel}" FontWeight="Bold" Foreground="#4B5563" Margin="4,2" TextAlignment="Right"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </GroupStyle.HeaderTemplate>
+                                            </GroupStyle>
+                                        </controls:SmartComboBox.GroupStyle>
+
+                                        <controls:SmartComboBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="150"/>
+                                                        <ColumnDefinition Width="80"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="60"/>
+                                                        <ColumnDefinition Width="70"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding ItemCode}"
+                                                           FontSize="13" Margin="4,2" Foreground="#6B7280"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding ItemName}"
+                                                               FontSize="13" Margin="4,2" FontWeight="SemiBold"/>
+                                                    <TextBlock Grid.Column="2"
+                                                           Text="{Binding BatchNumber, TargetNullValue='(New Batch)'}"
+                                                               FontSize="12" Margin="4,2" Foreground="#6B7280" FontStyle="Italic"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding Mrp, StringFormat=N2}"
+                                                               FontSize="12" Margin="4,2" TextAlignment="Right"/>
+                                                    <TextBlock Grid.Column="4" Text="{Binding SalesRate, StringFormat=N2}"
+                                                               FontSize="12" Margin="4,2" Foreground="#059669" TextAlignment="Right"/>
+                                                    <TextBlock Grid.Column="5" Text="{Binding CurrentStock, StringFormat='{}{0:N2}'}"
+                                                               FontSize="12" Margin="4,2" Foreground="#6B7280" TextAlignment="Right"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </controls:SmartComboBox.ItemTemplate>
+                                    </controls:SmartComboBox>
+                                </StackPanel>
+
+                                <!-- HSN — read-only auto-fill -->
+                                <StackPanel Grid.Column="1" Margin="0,4,7,0">
+                                    <TextBlock Text="HSN" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryHsn" Style="{StaticResource ReadOnlyField}" IsReadOnly="True"/>
+                                </StackPanel>
+
+                                <!-- Rate — editable, defaults to the batch's sales rate -->
+                                <StackPanel Grid.Column="2" Margin="0,4,7,0">
+                                    <TextBlock Text="Rate" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryRate" IsEnabled="False"
+                                             Style="{StaticResource EntryNumericField}"
+                                             helpers:FocusBehavior.MoveOnEnter="True"
+                                             TextChanged="EntryLine_RecalcRequested"
+                                             helpers:TextBoxBehavior.IsDecimal="True"
+                                             helpers:TextBoxBehavior.SelectAllOnFocus="True"/>
+                                </StackPanel>
+
+                                <!-- Unit Price — read-only, backed out of Rate/Tax% (Rate is
+                                 tax-inclusive; this is the ex-tax per-unit price everything
+                                 downstream actually calculates from). Recomputed live in
+                                 EntryCalculation_TextChanged whenever Rate, Qty, Discount%,
+                                 or Tax% change. -->
+                                <StackPanel Grid.Column="3" Margin="0,4,7,0">
+                                    <TextBlock Text="Unit Price" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryUnitPrice" IsEnabled="False"
+                                             IsReadOnly="True"
+                                             Style="{StaticResource ReadOnlyField}"
+                                             helpers:TextBoxBehavior.IsDecimal="True"/>
+                                </StackPanel>
+
+                                <!-- Quantity — highlighted -->
+                                <StackPanel Grid.Column="4" Margin="0,4,7,0">
+                                    <TextBlock Text="Quantity" Style="{StaticResource EntryFieldLabel}"
+                                               Foreground="#1D4ED8" FontWeight="SemiBold"/>
+                                    <TextBox x:Name="txtEntryQty" IsEnabled="False"
+                                             Style="{StaticResource EntryNumericField}"
+                                             helpers:FocusBehavior.MoveOnEnter="True"
+                                             helpers:TextBoxBehavior.IsDecimal="True"
+                                             helpers:TextBoxBehavior.SelectAllOnFocus="True"
+                                             TextChanged="EntryLine_RecalcRequested"/>
+
+                                    <!-- Live stock-on-hand for the selected batch. -->
+                                    <TextBlock x:Name="lblAvailableStock" Text="" FontSize="10"
+                                               Margin="0,2,0,0" Foreground="#1D4ED8"/>
+                                </StackPanel>
+
+                                <!-- Discount % -->
+                                <StackPanel Grid.Column="5" Margin="0,4,7,0">
+                                    <TextBlock Text="Discount %" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryDiscount" IsEnabled="False"
+                                             Style="{StaticResource EntryNumericField}"
+                                             helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnAddItem}"
+                                             TextChanged="EntryLine_RecalcRequested"
+                                             helpers:TextBoxBehavior.IsDecimal="True"
+                                             helpers:TextBoxBehavior.SelectAllOnFocus="True"/>
+                                </StackPanel>
+
+                                <!-- Discount Amount -->
+                                <StackPanel Grid.Column="6" Margin="0,4,7,0">
+                                    <TextBlock Text="Disc Amt" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryDiscountAmount" IsEnabled="False"
+                                             Style="{StaticResource EntryNumericField}"
+                                             helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnAddItem}"
+                                             helpers:TextBoxBehavior.IsDecimal="True"
+                                             helpers:TextBoxBehavior.SelectAllOnFocus="True"
+                                             TextChanged="EntryLine_RecalcRequested"/>
+                                </StackPanel>
+
+                                <!-- Taxable Amount -->
+                                <StackPanel Grid.Column="7" Margin="0,4,7,0">
+                                    <TextBlock Text="Taxable" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryTaxable" IsEnabled="False"
+                                             Style="{StaticResource ReadOnlyField}"
+                                             helpers:FocusBehavior.MoveOnEnter="True"
+                                             helpers:TextBoxBehavior.IsDecimal="True"
+                                             IsReadOnly="True"
+                                             TextChanged="EntryLine_RecalcRequested"/>
+                                </StackPanel>
+
+                                <!-- Tax % -->
+                                <StackPanel Grid.Column="8" Margin="0,4,7,0">
+                                    <TextBlock Text="Tax %" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryTaxRate" IsEnabled="False"
+                                             Style="{StaticResource ReadOnlyField}"
+                                             Foreground="#D97706"
+                                             helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnAddItem}"
+                                             helpers:TextBoxBehavior.IsDecimal="True"
+                                             IsReadOnly="True"
+                                             TextChanged="EntryLine_RecalcRequested"/>
+                                </StackPanel>
+
+                                <!-- Tax Amount -->
+                                <StackPanel Grid.Column="9" Margin="0,4,7,0">
+                                    <TextBlock Text="Tax Amt" Style="{StaticResource EntryFieldLabel}"/>
+                                    <TextBox x:Name="txtEntryTaxAmount" IsEnabled="False"
+                                             Style="{StaticResource ReadOnlyField}"
+                                             helpers:FocusBehavior.MoveOnEnter="True"
+                                             helpers:TextBoxBehavior.IsDecimal="True"
+                                             IsReadOnly="True"
+                                             TextChanged="EntryLine_RecalcRequested"/>
+                                </StackPanel>
+
+                                <!-- Total — highlighted -->
+                                <StackPanel Grid.Column="10" Margin="7,4,7,0">
+                                    <TextBlock Text="Total" Style="{StaticResource EntryFieldLabel}"
+                                               Foreground="Blue" FontWeight="ExtraBold"/>
+                                    <TextBox x:Name="txtEntryTotal" Style="{StaticResource ReadOnlyField}" IsReadOnly="True"
+                                             Foreground="Blue" FontWeight="ExtraBold"
+                                             TextAlignment="Center"
+                                             helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnAddItem}"/>
+                                </StackPanel>
+
+                                <!-- Add Item -->
+                                <StackPanel Grid.Column="11" VerticalAlignment="Center" Margin="0,4,0,0">
+                                    <Button x:Name="btnAddItem" Content="＋ Add Item"
+                                            IsEnabled="False"
+                                            Click="BtnAddItem_Click"
+                                            Style="{StaticResource PrimaryOutlineButton}"
+                                            Width="90" Height="32" Margin="10,0,0,3"/>
+                                </StackPanel>
+
+                            </Grid>
+                        </ScrollViewer>
+                    </StackPanel>
+                </Border>
+
+                <!-- ── ITEMS GRID ──────────────────────────────────────────── -->
+                <sf:SfDataGrid
+                    x:Name="sfItems" IsEnabled="False"
+                    Grid.Row="2"
+                    MinHeight="160"
+                    RowHeight="34"
+                    HeaderRowHeight="38"
+                    AutoGenerateColumns="False"
+                    AllowEditing="True"
+                    AddNewRowPosition="None"
+                    AllowDeleting="True"
+                    NavigationMode="Cell"
+                    SelectionMode="Single"
+                    ColumnSizer="None"
+                    AlternationCount="2"
+                    CurrentCellBeginEdit="SfItems_CurrentCellBeginEdit"
+                    CurrentCellEndEdit="SfItems_CurrentCellEndEdit"
+                    BorderThickness="0"
+                    ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+                    <sf:SfDataGrid.RowStyle>
+                        <Style TargetType="sf:VirtualizingCellsControl">
+                            <Setter Property="Background" Value="White"/>
+                        </Style>
+                    </sf:SfDataGrid.RowStyle>
+
+                    <sf:SfDataGrid.AlternatingRowStyle>
+                        <Style TargetType="sf:VirtualizingCellsControl">
+                            <Setter Property="Background" Value="#EFF6FF"/>
+                        </Style>
+                    </sf:SfDataGrid.AlternatingRowStyle>
+
+                    <sf:SfDataGrid.Columns>
+                        <sf:GridTextColumn    MappingName="ItemName"      HeaderText="Item Name" ColumnSizer="Star" MinimumWidth="170" AllowEditing="False"/>
+                        <sf:GridTextColumn    MappingName="BatchNumber"   HeaderText="Batch"    Width="90"  AllowEditing="False"/>
+                        <sf:GridNumericColumn MappingName="Rate"          HeaderText="Rate"     Width="85"  NumberDecimalDigits="2"/>
+                        <sf:GridNumericColumn MappingName="UnitPrice"     HeaderText="Unit Price" Width="90" NumberDecimalDigits="2" AllowEditing="False"/>
+                        <sf:GridNumericColumn MappingName="Quantity"      HeaderText="Qty"      Width="75"  NumberDecimalDigits="3"/>
+                        <sf:GridNumericColumn MappingName="DiscountRate"  HeaderText="Disc%"    Width="60"  NumberDecimalDigits="2"/>
+                        <sf:GridNumericColumn MappingName="Discount"      HeaderText="Disc Amt" Width="80"  NumberDecimalDigits="2"/>
+                        <sf:GridNumericColumn MappingName="TaxableAmount" HeaderText="Taxable"  Width="85"  NumberDecimalDigits="2" AllowEditing="False"/>
+                        <sf:GridNumericColumn MappingName="TaxRate"       HeaderText="Tax%"     Width="60"  NumberDecimalDigits="2"/>
+                        <sf:GridNumericColumn MappingName="TaxAmount"     HeaderText="Tax Amt"  Width="80"  NumberDecimalDigits="2" AllowEditing="False"/>
+                        <sf:GridNumericColumn MappingName="Total"         HeaderText="Total"    Width="95"  NumberDecimalDigits="2" AllowEditing="False"/>
+
+                        <!-- Delete row -->
+                        <sf:GridTemplateColumn HeaderText="" Width="50"
+                            AllowEditing="False" AllowSorting="False" AllowFiltering="False">
+                            <sf:GridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="✕" Style="{StaticResource GridDeleteButton}" Click="BtnDeleteRow_Click"/>
+                                </DataTemplate>
+                            </sf:GridTemplateColumn.CellTemplate>
+                        </sf:GridTemplateColumn>
+                    </sf:SfDataGrid.Columns>
+                </sf:SfDataGrid>
+            </Grid>
+        </Border>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             ROW 3 — REFUND SETTLEMENT (left)  |  TOTALS (right)
+             (Transport details omitted for return entries)
+             ═══════════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="3" Margin="0,4,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource CardBorder}" Padding="10,6" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="REFUND SETTLEMENT" Style="{StaticResource SectionHeader}" Margin="0,0,0,4"/>
+
+                    <StackPanel Margin="0,0,0,4">
+                        <TextBlock Text="By Cash" Style="{StaticResource EntryFieldLabel}"/>
+                        <TextBox x:Name="txtByCash" IsEnabled="False" HorizontalAlignment="Stretch"
+                                 Style="{StaticResource EntryNumericField}"
+                                 TextChanged="TxtByCash_TextChanged"
+                                 helpers:FocusBehavior.MoveOnEnter="True"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,4">
+                        <TextBlock Text="By Bank / Card" Style="{StaticResource EntryFieldLabel}"/>
+                        <TextBox x:Name="txtByBank" IsEnabled="False" HorizontalAlignment="Stretch"
+                                 Style="{StaticResource EntryNumericField}"
+                                 TextChanged="TxtByBank_TextChanged"
+                                 helpers:FocusBehavior.MoveOnEnter="True"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,4">
+                        <TextBlock Text="Bank Account" Style="{StaticResource EntryFieldLabel}"/>
+                        <ComboBox x:Name="cmbBankHead" IsEnabled="False" HorizontalAlignment="Stretch"
+                                  DisplayMemberPath="AcHeadName"
+                                  SelectedValuePath="AcHeadCode"
+                                  helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=txtDiscountPercent}"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,0">
+                        <!-- Adjusted against customer credit balance rather than paid
+                             out, when the return is against a credit-mode bill. -->
+                        <TextBlock Text="By Credit (adj.)" Style="{StaticResource EntryFieldLabel}"/>
+                        <TextBox x:Name="txtByCredit" HorizontalAlignment="Stretch" IsReadOnly="True" Focusable="False"
+                                 Style="{StaticResource ReadOnlyField}" FontWeight="Bold"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="1" Style="{StaticResource CardBorder}" Padding="10,6" Margin="8,0,0,0">
+                <StackPanel Orientation="Vertical">
+
+                    <Grid Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Discount %:" Margin="0,0,6,4" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtDiscountPercent" IsEnabled="False" Grid.Row="0" Grid.Column="1" Margin="0,0,0,4"
+                                 HorizontalAlignment="Stretch"
+                                 Style="{StaticResource EntryNumericField}"
+                                 TextChanged="Totals_RecalcRequested"
+                                 helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Cash Discount:" Margin="0,0,6,4" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtCashDiscount" IsEnabled="False" Grid.Row="1" Grid.Column="1" Margin="0,0,0,4"
+                                 HorizontalAlignment="Stretch"
+                                 Style="{StaticResource EntryNumericField}"
+                                 helpers:TextBoxBehavior.AllowNegative="True"
+                                 TextChanged="Totals_RecalcRequested"
+                                 helpers:FocusBehavior.MoveOnEnter="True"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Round Off:" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="txtRoundOff" IsEnabled="False" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Stretch"
+                                 Style="{StaticResource EntryNumericField}"
+                                 helpers:TextBoxBehavior.AllowNegative="True"
+                                 TextChanged="Totals_RecalcRequested"
+                                 helpers:FocusBehavior.TargetOnEnter="{Binding ElementName=btnSave}"/>
+                    </Grid>
+
+                    <Border BorderBrush="#D1D5DB" BorderThickness="1"
+                            CornerRadius="4" Padding="10,6" Background="#F9FAFB">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*" MinWidth="90"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="3"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Gross Amount:" Margin="0,0,12,2"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" x:Name="lblGrossAmount"
+                                       Text="0.00" TextAlignment="Right" Margin="0,0,0,2"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Discount Total:" Margin="0,0,12,2"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" x:Name="lblDiscountAmount"
+                                       Text="0.00" TextAlignment="Right" Margin="0,0,0,2"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Tax Total:" FontSize="16" Margin="0,0,12,2"/>
+                            <TextBlock Grid.Row="2" Grid.Column="1" x:Name="lblTaxAmount" FontSize="16" FontWeight="DemiBold"
+                                       Text="0.00" TextAlignment="Right" Foreground="#D97706" Margin="0,0,0,2"/>
+
+                            <Separator Grid.Row="3" Grid.ColumnSpan="2" Background="#D1D5DB" Margin="0,1"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Net Total:"
+                                       FontSize="22" FontWeight="Bold" Margin="0,0,12,0"/>
+                            <TextBlock Grid.Row="4" Grid.Column="1" x:Name="lblNetTotal"
+                                       Text="0.00" FontSize="22" TextAlignment="Right"
+                                       FontWeight="ExtraBold" Foreground="#059669"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             ROW 4 — ACTION BUTTONS
+             ═══════════════════════════════════════════════════════════════ -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal"
+                    HorizontalAlignment="Center" Margin="0,12,0,12">
+            <Button x:Name="btnNew"        Content="_New"        Click="BtnNew_Click"/>
+            <Button x:Name="btnDisplay"    Content="Display"     Click="BtnDisplay_Click"/>
+            <Button x:Name="btnSave"       Content="_Save"       Click="BtnSave_Click"
+                    Style="{StaticResource PrimaryOutlineButton}" IsEnabled="False"/>
+
+            <Button x:Name="btnCancelBill" Content="Cancel _Entry" Click="BtnCancelBill_Click"
+                    Style="{StaticResource DangerOutlineButton}" IsEnabled="False"/>
+            <Button x:Name="btnPrint"      Content="_Print"      Click="BtnPrint_Click"
+                    IsEnabled="False"/>
+            <Button x:Name="btnExport"     Content="_Export"     Click="BtnExport_Click"
+                    IsEnabled="False"/>
+            <Button x:Name="btnClose"      Content="Close"
+                    helpers:CloseTabBehavior.CloseOnClick="True" Margin="0"/>
+        </StackPanel>
+
+        <Popup x:Name="popupExport" PlacementTarget="{Binding ElementName=btnExport}"
+       Placement="Bottom" StaysOpen="False" AllowsTransparency="True">
+            <Border Background="White" BorderBrush="#D1D5DB" BorderThickness="1"
+            CornerRadius="4" Padding="4" MinWidth="220">
+                <StackPanel>
+                    <Button Content="Export as PDF (letterhead)" Click="BtnExportPdf_Click"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
+                    Width="Auto" Padding="10,6" Margin="0" BorderThickness="0"
+                    Background="Transparent"/>
+                    <Button Content="Export as Excel (tabular)" Click="BtnExportExcel_Click"
+                    HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
+                    Width="Auto" Padding="10,6" Margin="0" BorderThickness="0"
+                    Background="Transparent"/>
+                </StackPanel>
+            </Border>
+        </Popup>
+
+
+        <!-- Cancelled watermark -->
+        <Grid x:Name="pnlCancelledWatermark" Grid.RowSpan="5" Panel.ZIndex="500"
+              IsHitTestVisible="False" Visibility="Collapsed" Background="Transparent">
+            <TextBlock Text="CANCELLED"
+                       FontSize="90" FontWeight="ExtraBold"
+                       Foreground="#DC2626" Opacity="0.18"
+                       HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock.LayoutTransform>
+                    <RotateTransform Angle="-30"/>
+                </TextBlock.LayoutTransform>
+            </TextBlock>
+        </Grid>
+        <controls:GenericSearchOverlay x:Name="SearchOverlay"
+                                   Grid.RowSpan="5"
+                                   Panel.ZIndex="999"
+                                   Visibility="Collapsed"/>
+    </Grid>
+</UserControl>

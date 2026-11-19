@@ -1,0 +1,86 @@
+﻿<UserControl x:Class="BillPro.Controls.SeriesFilterControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        Reusable "Series" multi-select filter, used on all three Sales
+        reports (and available for the Display/Search overlay — see
+        SearchConfig.cs). Renders as a single button; clicking it drops
+        down a checklist of active sales series (prefixes). The button's
+        own content doubles as the "small label box" showing what's
+        currently selected, e.g. "All Series", "GA", or "GA, GB (+2)".
+
+        Usage:
+            <controls:SeriesFilterControl x:Name="seriesFilter"
+                                           SelectionChanged="Filter_Changed"/>
+            ...
+            seriesFilter.LoadSeries(_seriesRepo.GetActive());
+            ...
+            var selected = seriesFilter.SelectedPrefixes; // empty list = All
+    -->
+    <UserControl.Resources>
+        <Style TargetType="ToggleButton" x:Key="SeriesDropButtonStyle">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Grid.Column="0" Margin="{TemplateBinding Padding}"
+                                                   VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="▼" FontSize="9" Foreground="#6B7280"
+                                           Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <ToggleButton x:Name="toggleBtn" Style="{StaticResource SeriesDropButtonStyle}"
+                      Width="160" Checked="ToggleBtn_Checked">
+            <TextBlock x:Name="txtSelectedLabel" Text="All Series" TextTrimming="CharacterEllipsis"/>
+        </ToggleButton>
+
+        <Popup x:Name="popup" PlacementTarget="{Binding ElementName=toggleBtn}"
+               Placement="Bottom" StaysOpen="False" AllowsTransparency="True"
+               Closed="Popup_Closed">
+            <Border Background="White" BorderBrush="#9CA3AF" BorderThickness="1"
+                    CornerRadius="3" Width="220" MaxHeight="260" Padding="4">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.25"/>
+                </Border.Effect>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,2,4,4">
+                        <Button Content="All" Padding="6,2" Margin="0,0,4,0" Click="BtnSelectAll_Click"/>
+                        <Button Content="None" Padding="6,2" Click="BtnSelectNone_Click"/>
+                    </StackPanel>
+                    <Separator DockPanel.Dock="Top"/>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="itemsList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked}"
+                                              Margin="4,3" Click="CheckItem_Click"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Popup>
+    </StackPanel>
+</UserControl>
