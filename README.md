@@ -6,6 +6,8 @@ BillPro is a Windows desktop app built with WPF and .NET 8. It covers the full c
 
 > **Status:** test/portfolio version. The production version is developed separately.
 
+## Screenshots
+
 | | |
 |---|---|
 | **Login**<br>![Login](docs/login.png) | **Dashboard**<br>![Dashboard](docs/dashboard.png) |
