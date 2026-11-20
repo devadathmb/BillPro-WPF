@@ -493,3 +493,5 @@ task05-baseline.txt
 
 secrets.local.json
 **/secrets.local.json
+
+*.bak
