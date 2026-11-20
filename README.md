@@ -12,7 +12,7 @@ BillPro is a Windows desktop app built with WPF and .NET 8. It covers the full c
 |---|---|
 | **Login**<br>![Login](docs/login.png) | **Dashboard**<br>![Dashboard](docs/dashboard.png) |
 | **Sales entry**<br>![Sales entry](docs/sales-entry.png) | **Balance sheet**<br>![Balance sheet](docs/balance-sheet.png) |
-| **Invoice PDF**<br>![Invoice PDF](docs/invoice.png) | |
+| **Invoice PDF**<br>![Invoice PDF](docs/invoice.png) | **Cash Book Excel**<br>![Cash Book Excel](docs/cashbook.png) |
 
 
 ## Features
